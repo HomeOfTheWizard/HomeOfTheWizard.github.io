@@ -2,35 +2,35 @@
 
 <feed xmlns="http://www.w3.org/2005/Atom" >
   <generator uri="https://jekyllrb.com/" version="3.7.4">Jekyll</generator>
-  <link href="http://HomeOfTheWizard.github.io/tag/d%C3%A9veloppement/feed.xml" rel="self" type="application/atom+xml" />
+  <link href="http://HomeOfTheWizard.github.io/tag/developement/feed.xml" rel="self" type="application/atom+xml" />
   <link href="http://HomeOfTheWizard.github.io/" rel="alternate" type="text/html" />
   <updated>2020-08-21T10:11:07+02:00</updated>
-  <id>http://HomeOfTheWizard.github.io/tag/d%C3%A9veloppement/feed.xml</id>
+  <id>http://HomeOfTheWizard.github.io/tag/developement/feed.xml</id>
 
-  
-  
-  
 
-  
+
+
+
+
     <title type="html">Özgün ÖZ | </title>
-  
 
-  
+
+
     <subtitle>The blog of Özgün ÖZ</subtitle>
-  
 
-  
 
-  
-    
-      
-    
-  
 
-  
-  
 
-  
+
+
+
+
+
+
+
+
+
+
     <entry>
       <title type="html">Tests automatiques avec autoplay</title>
       <link href="http://HomeOfTheWizard.github.io/tests-automatiques-avec-autoplay" rel="alternate" type="text/html" title="Tests automatiques avec autoplay" />
@@ -41,7 +41,7 @@
 
 &lt;h2 id=&quot;les-tests-chez-pizzicato-js&quot;&gt;Les tests chez Pizzicato JS&lt;/h2&gt;
 
-&lt;p&gt;J’ai rencontré un de ces problèmes dans le cadre du développement de &lt;a href=&quot;https://HomeOfTheWizard.github.io/pizzicato/&quot;&gt;Pizzicato JS&lt;/a&gt;, une librairie visant à simplifier la création et manipulation du son dans le navigateur (&lt;a href=&quot;github.com/HomeOfTheWizard/pizzicato/&quot;&gt;code source ouvert&lt;/a&gt;). Pizzicato compte une batterie de tests automatiques interagissant avec l’API WebAudio. Ces tests sont exécutés en Chrome depuis Travis CI à chaque nouveau commit.&lt;/p&gt;
+&lt;p&gt;J’ai rencontré un de ces problèmes dans le cadre du development de &lt;a href=&quot;https://HomeOfTheWizard.github.io/pizzicato/&quot;&gt;Pizzicato JS&lt;/a&gt;, une librairie visant à simplifier la création et manipulation du son dans le navigateur (&lt;a href=&quot;github.com/HomeOfTheWizard/pizzicato/&quot;&gt;code source ouvert&lt;/a&gt;). Pizzicato compte une batterie de tests automatiques interagissant avec l’API WebAudio. Ces tests sont exécutés en Chrome depuis Travis CI à chaque nouveau commit.&lt;/p&gt;
 
 &lt;p&gt;Avec les versions récentes de Chrome, les tests qui dépendent du son échouent systématiquement :&lt;/p&gt;
 
@@ -128,34 +128,34 @@ Chrome 80.0.3987 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Linux 0.0.0&lt;sp
   &lt;li&gt;Documentation de la politique &lt;a href=&quot;https://docs.microsoft.com/fr-fr/microsoft-edge/dev-guide/browser-features/autoplay-policies&quot;&gt;autoplay sur Edge&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;</content>
 
-      
-      
-      
-      
-      
+
+
+
+
+
 
       <author>
           <name></name>
-        
-        
+
+
       </author>
 
-      
 
-      
-        <category term="Développement" />
-      
+
+
+        <category term="development" />
+
         <category term="JS" />
-      
 
-      
+
+
         <summary type="html">Les navigateurs implémentent des fonctionnalités permettant de bloquer le contenu audio qui démarre automatiquement. Comment s'en sortir en tant que développeur ?</summary>
-      
 
-      
-      
+
+
+
     </entry>
-  
+
     <entry>
       <title type="html">Mesurer la performance avec Locust</title>
       <link href="http://HomeOfTheWizard.github.io/locust" rel="alternate" type="text/html" title="Mesurer la performance avec Locust" />
@@ -339,32 +339,32 @@ Chrome 80.0.3987 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Linux 0.0.0&lt;sp
 &lt;h3 id=&quot;comparaison-avec-tsung&quot;&gt;Comparaison avec Tsung&lt;/h3&gt;
 &lt;p&gt;&lt;a href=&quot;http://tsung.erlang-projects.org/&quot;&gt;Tsung&lt;/a&gt; est basé sur Erlang et la machine virtuelle BEAM, un très bon choix pour une application basé sur des processus légers concurrents. Par contre, Tsung a besoin d’un fichier xml cauchemardesque pour décrire les tests. De plus, le projet a l’air plutôt dormant depuis un an.&lt;/p&gt;</content>
 
-      
-      
-      
-      
-      
+
+
+
+
+
 
       <author>
           <name></name>
-        
-        
+
+
       </author>
 
-      
 
-      
-        <category term="Développement" />
-      
+
+
+        <category term="development" />
+
         <category term="Python" />
-      
 
-      
+
+
         <summary type="html">Toute application doit pouvoir répondre à un certain nombre de requêtes sous un temps minimum acceptable. Locust nous aide à faire les tests de charge nécessaires pour en être sûrs.</summary>
-      
 
-      
-      
+
+
+
     </entry>
-  
+
 </feed>

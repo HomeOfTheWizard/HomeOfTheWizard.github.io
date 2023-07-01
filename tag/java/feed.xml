@@ -41,7 +41,7 @@
 
 &lt;h2 id=&quot;les-tests-chez-pizzicato-js&quot;&gt;Les tests chez Pizzicato JS&lt;/h2&gt;
 
-&lt;p&gt;J’ai rencontré un de ces problèmes dans le cadre du développement de &lt;a href=&quot;https://HomeOfTheWizard.github.io/pizzicato/&quot;&gt;Pizzicato JS&lt;/a&gt;, une librairie visant à simplifier la création et manipulation du son dans le navigateur (&lt;a href=&quot;github.com/HomeOfTheWizard/pizzicato/&quot;&gt;code source ouvert&lt;/a&gt;). Pizzicato compte une batterie de tests automatiques interagissant avec l’API WebAudio. Ces tests sont exécutés en Chrome depuis Travis CI à chaque nouveau commit.&lt;/p&gt;
+&lt;p&gt;J’ai rencontré un de ces problèmes dans le cadre du development de &lt;a href=&quot;https://HomeOfTheWizard.github.io/pizzicato/&quot;&gt;Pizzicato JS&lt;/a&gt;, une librairie visant à simplifier la création et manipulation du son dans le navigateur (&lt;a href=&quot;github.com/HomeOfTheWizard/pizzicato/&quot;&gt;code source ouvert&lt;/a&gt;). Pizzicato compte une batterie de tests automatiques interagissant avec l’API WebAudio. Ces tests sont exécutés en Chrome depuis Travis CI à chaque nouveau commit.&lt;/p&gt;
 
 &lt;p&gt;Avec les versions récentes de Chrome, les tests qui dépendent du son échouent systématiquement :&lt;/p&gt;
 
@@ -143,7 +143,7 @@ Chrome 80.0.3987 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Linux 0.0.0&lt;sp
 
 
 
-        <category term="Développement" />
+        <category term="development" />
 
         <category term="JS" />
 
