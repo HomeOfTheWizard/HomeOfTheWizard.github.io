@@ -135,7 +135,7 @@ Les pouvoirs publics doivent être en mesure de tester et de certifier les donn�
 
 &lt;h2 id=&quot;les-tests-chez-pizzicato-js&quot;&gt;Les tests chez Pizzicato JS&lt;/h2&gt;
 
-&lt;p&gt;J’ai rencontré un de ces problèmes dans le cadre du développement de &lt;a href=&quot;https://HomeOfTheWizard.github.io/pizzicato/&quot;&gt;Pizzicato JS&lt;/a&gt;, une librairie visant à simplifier la création et manipulation du son dans le navigateur (&lt;a href=&quot;github.com/alemangui/pizzicato/&quot;&gt;code source ouvert&lt;/a&gt;). Pizzicato compte une batterie de tests automatiques interagissant avec l’API WebAudio. Ces tests sont exécutés en Chrome depuis Travis CI à chaque nouveau commit.&lt;/p&gt;
+&lt;p&gt;J’ai rencontré un de ces problèmes dans le cadre du développement de &lt;a href=&quot;https://HomeOfTheWizard.github.io/pizzicato/&quot;&gt;Pizzicato JS&lt;/a&gt;, une librairie visant à simplifier la création et manipulation du son dans le navigateur (&lt;a href=&quot;github.com/HomeOfTheWizard/pizzicato/&quot;&gt;code source ouvert&lt;/a&gt;). Pizzicato compte une batterie de tests automatiques interagissant avec l’API WebAudio. Ces tests sont exécutés en Chrome depuis Travis CI à chaque nouveau commit.&lt;/p&gt;
 
 &lt;p&gt;Avec les versions récentes de Chrome, les tests qui dépendent du son échouent systématiquement :&lt;/p&gt;
 
