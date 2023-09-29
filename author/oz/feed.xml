@@ -4,7 +4,7 @@
   <generator uri="https://jekyllrb.com/" version="3.9.3">Jekyll</generator>
   <link href="/author/oz/feed.xml" rel="self" type="application/atom+xml" />
   <link href="/" rel="alternate" type="text/html" />
-  <updated>2023-09-29T17:54:57+02:00</updated>
+  <updated>2023-09-29T18:20:07+02:00</updated>
   <id>/author/oz/feed.xml</id>
 
   
@@ -32,12 +32,48 @@
 
   
     <entry>
-      <title type="html">Environment Variables in Java</title>
-      <link href="/environmentvariables-in-java" rel="alternate" type="text/html" title="Environment Variables in Java" />
+      <title type="html">Understanding Maven core for plugin Development</title>
+      <link href="/maven_sisu" rel="alternate" type="text/html" title="Understanding Maven core for plugin Development" />
       <published>2023-08-30T12:18:00+02:00</published>
       <updated>2023-08-30T12:18:00+02:00</updated>
-      <id>/environmentvariables-in-java</id>
-      <content type="html" xml:base="/environmentvariables-in-java">&lt;p&gt;This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.&lt;/p&gt;
+      <id>/maven_sisu</id>
+      <content type="html" xml:base="/maven_sisu">&lt;p&gt;Deep dive into maven’s dependency management and classloader system to help the development of plugins&lt;/p&gt;</content>
+
+      
+      
+      
+      
+      
+
+      <author>
+          <name>Özgün ÖZ</name>
+        
+        
+      </author>
+
+      
+
+      
+        <category term="development" />
+      
+        <category term="java" />
+      
+
+      
+        <summary type="html">Deep dive into maven’s dependency management and classloader system to help the development of plugins</summary>
+      
+
+      
+      
+    </entry>
+  
+    <entry>
+      <title type="html">How to handle Secrets in Java</title>
+      <link href="/secrets-in-java" rel="alternate" type="text/html" title="How to handle Secrets in Java" />
+      <published>2023-08-30T12:18:00+02:00</published>
+      <updated>2023-08-30T12:18:00+02:00</updated>
+      <id>/secrets-in-java</id>
+      <content type="html" xml:base="/secrets-in-java">&lt;p&gt;This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.&lt;/p&gt;
 
 &lt;p&gt;All modern production applications have some parameters/configurations to allow maximum flexibility of its execution. 
 There are different ways to manage those parameters, as there are different type of parameters, 
@@ -303,42 +339,6 @@ https://docs.spring.io/spring-framework/reference/core/beans/annotation-config/v
 
       
         <summary type="html">This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.</summary>
-      
-
-      
-      
-    </entry>
-  
-    <entry>
-      <title type="html">Understanding Maven core for plugin Development</title>
-      <link href="/maven_sisu" rel="alternate" type="text/html" title="Understanding Maven core for plugin Development" />
-      <published>2023-08-30T12:18:00+02:00</published>
-      <updated>2023-08-30T12:18:00+02:00</updated>
-      <id>/maven_sisu</id>
-      <content type="html" xml:base="/maven_sisu">&lt;p&gt;Deep dive into maven’s dependency management and classloader system to help the development of plugins&lt;/p&gt;</content>
-
-      
-      
-      
-      
-      
-
-      <author>
-          <name>Özgün ÖZ</name>
-        
-        
-      </author>
-
-      
-
-      
-        <category term="development" />
-      
-        <category term="java" />
-      
-
-      
-        <summary type="html">Deep dive into maven’s dependency management and classloader system to help the development of plugins</summary>
       
 
       

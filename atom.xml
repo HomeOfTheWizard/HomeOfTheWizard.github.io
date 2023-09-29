@@ -8,6 +8,21 @@
     
       
       <item>
+        <title>How to handle Secrets in Java</title>
+        
+          <description>&lt;p&gt;This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.&lt;/p&gt;
+
+</description>
+        
+        <pubDate>Wed, 30 Aug 2023 12:18:00 +0200</pubDate>
+        <link>
+        /secrets-in-java</link>
+        <guid isPermaLink="true">/secrets-in-java</guid>
+      </item>
+      
+    
+      
+      <item>
         <title>Understanding Maven core for plugin Development</title>
         
           <description>&lt;p&gt;Deep dive into maven’s dependency management and classloader system to help the development of plugins&lt;/p&gt;
@@ -17,21 +32,6 @@
         <link>
         /maven_sisu</link>
         <guid isPermaLink="true">/maven_sisu</guid>
-      </item>
-      
-    
-      
-      <item>
-        <title>Environment Variables in Java</title>
-        
-          <description>&lt;p&gt;This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.&lt;/p&gt;
-
-</description>
-        
-        <pubDate>Wed, 30 Aug 2023 12:18:00 +0200</pubDate>
-        <link>
-        /environmentvariables-in-java</link>
-        <guid isPermaLink="true">/environmentvariables-in-java</guid>
       </item>
       
     
