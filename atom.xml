@@ -2,74 +2,52 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title> - Articles</title>
-    <description>The blog of Özgün ÖZ</description>
+    <description>Fullstack Developer, Msc. Computer Engineer</description>
     <link>
-    http://HomeOfTheWizard.github.io</link>
-
-
+    </link>
+    
+      
       <item>
-        <title>Les biais de l'intelligence artificielle</title>
-
-          <description>Cette nouvelle technologie devenue omniprésente renforce nos préjugés. Comment ne pas pérenniser nos déviations de jugement ?</description>
-
-        <pubDate>Sat, 09 May 2020 00:00:00 +0200</pubDate>
+        <title>Understanding Maven core for plugin Development</title>
+        
+          <description>&lt;p&gt;Deep dive into maven’s dependency management and classloader system to help the development of plugins&lt;/p&gt;
+</description>
+        
+        <pubDate>Wed, 30 Aug 2023 12:18:00 +0200</pubDate>
         <link>
-        http://HomeOfTheWizard.github.io/biais-intelligence-artificielle</link>
-        <guid isPermaLink="true">http://HomeOfTheWizard.github.io/biais-intelligence-artificielle</guid>
+        /maven_sisu</link>
+        <guid isPermaLink="true">/maven_sisu</guid>
       </item>
-
-
-
+      
+    
+      
       <item>
-        <title>Tests automatiques avec autoplay</title>
+        <title>Environment Variables in Java</title>
+        
+          <description>&lt;p&gt;This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.&lt;/p&gt;
 
-          <description>Les navigateurs implémentent des fonctionnalités permettant de bloquer le contenu audio qui démarre automatiquement. Comment s'en sortir en tant que développeur ?</description>
-
-        <pubDate>Wed, 25 Mar 2020 00:00:00 +0100</pubDate>
+</description>
+        
+        <pubDate>Wed, 30 Aug 2023 12:18:00 +0200</pubDate>
         <link>
-        http://HomeOfTheWizard.github.io/tests-automatiques-avec-autoplay</link>
-        <guid isPermaLink="true">http://HomeOfTheWizard.github.io/tests-automatiques-avec-autoplay</guid>
+        /environmentvariables-in-java</link>
+        <guid isPermaLink="true">/environmentvariables-in-java</guid>
       </item>
-
-
-
+      
+    
+      
       <item>
-        <title>Apple et le droit à la réparation</title>
-
-          <description>La réparation - perçue comme un obstacle au profit par Apple - présente des nombreuses avantages au niveau individuel, sociétal et écologique. Le changement est possible, mais comment ?</description>
-
-        <pubDate>Wed, 26 Feb 2020 00:00:00 +0100</pubDate>
+        <title>Clickhouse 101 - Data Structures and internals</title>
+        
+          <description>&lt;p&gt;First article of the clickhouse 101 series. Let’s deep dive to the underlying data structures and internal mechanisms of clickhouse&lt;/p&gt;
+</description>
+        
+        <pubDate>Wed, 30 Aug 2023 12:18:00 +0200</pubDate>
         <link>
-        http://HomeOfTheWizard.github.io/apple-et-le-droit-a-la-reparation</link>
-        <guid isPermaLink="true">http://HomeOfTheWizard.github.io/apple-et-le-droit-a-la-reparation</guid>
+        /clickhouse101_1</link>
+        <guid isPermaLink="true">/clickhouse101_1</guid>
       </item>
-
-
-
-      <item>
-        <title>Mesurer la performance avec Locust</title>
-
-          <description>Toute application doit pouvoir répondre à un certain nombre de requêtes sous un temps minimum acceptable. Locust nous aide à faire les tests de charge nécessaires pour en être sûrs.</description>
-
-        <pubDate>Tue, 11 Feb 2020 00:00:00 +0100</pubDate>
-        <link>
-        http://HomeOfTheWizard.github.io/locust</link>
-        <guid isPermaLink="true">http://HomeOfTheWizard.github.io/locust</guid>
-      </item>
-
-
-
-      <item>
-        <title>Web Audio: the ugly click and the human ear</title>
-
-          <description>While playing around with a Web Audio demo, I noticed a clicking sound every time a I stopped an oscillator. Is there a way to avoid it?</description>
-
-        <pubDate>Sat, 26 Dec 2015 00:00:00 +0100</pubDate>
-        <link>
-        http://HomeOfTheWizard.github.io/ramp-to-value</link>
-        <guid isPermaLink="true">http://HomeOfTheWizard.github.io/ramp-to-value</guid>
-      </item>
-
-
+      
+    
   </channel>
 </rss>

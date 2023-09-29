@@ -1,458 +1,348 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <feed xmlns="http://www.w3.org/2005/Atom" >
-  <generator uri="https://jekyllrb.com/" version="3.7.4">Jekyll</generator>
-  <link href="http://HomeOfTheWizard.github.io/tag/java/feed.xml" rel="self" type="application/atom+xml" />
-  <link href="http://HomeOfTheWizard.github.io/" rel="alternate" type="text/html" />
-  <updated>2020-08-21T10:11:07+02:00</updated>
-  <id>http://HomeOfTheWizard.github.io/tag/java/feed.xml</id>
+  <generator uri="https://jekyllrb.com/" version="3.9.3">Jekyll</generator>
+  <link href="/tag/java/feed.xml" rel="self" type="application/atom+xml" />
+  <link href="/" rel="alternate" type="text/html" />
+  <updated>2023-09-29T17:54:57+02:00</updated>
+  <id>/tag/java/feed.xml</id>
 
+  
+  
+  
 
-
-
-
-
+  
     <title type="html">Özgün ÖZ | </title>
+  
 
+  
+    <subtitle>Fullstack Developer, Msc. Computer Engineer</subtitle>
+  
 
+  
 
-    <subtitle>The blog of Özgün ÖZ</subtitle>
+  
+    
+      
+    
+  
 
+  
+  
 
-
-
-
-
-
-
-
-
-
-
-
-
+  
     <entry>
-      <title type="html">Tests automatiques avec autoplay</title>
-      <link href="http://HomeOfTheWizard.github.io/tests-automatiques-avec-autoplay" rel="alternate" type="text/html" title="Tests automatiques avec autoplay" />
-      <published>2020-03-25T00:00:00+01:00</published>
-      <updated>2020-03-25T00:00:00+01:00</updated>
-      <id>http://HomeOfTheWizard.github.io/tests-automatiques-avec-autoplay</id>
-      <content type="html" xml:base="http://HomeOfTheWizard.github.io/tests-automatiques-avec-autoplay">&lt;p&gt;Depuis 2017, les différents navigateurs implémentent des fonctionnalités permettant de bloquer le son qui démarre automatiquement. Ceci n’a rien d’étonnant : on a tous vécu la nuisance des vidéos en autoplay qui se cachent parmi les nombreux onglets du navigateur. Néanmoins, pour les développeurs qui se basent de façon légitime sur l’autoplay (notamment pour des jeux vidéos ou applications multimédia), ces restrictions peuvent causer des difficultés.&lt;/p&gt;
+      <title type="html">Environment Variables in Java</title>
+      <link href="/environmentvariables-in-java" rel="alternate" type="text/html" title="Environment Variables in Java" />
+      <published>2023-08-30T12:18:00+02:00</published>
+      <updated>2023-08-30T12:18:00+02:00</updated>
+      <id>/environmentvariables-in-java</id>
+      <content type="html" xml:base="/environmentvariables-in-java">&lt;p&gt;This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.&lt;/p&gt;
 
-&lt;h2 id=&quot;les-tests-chez-pizzicato-js&quot;&gt;Les tests chez Pizzicato JS&lt;/h2&gt;
+&lt;p&gt;All modern production applications have some parameters/configurations to allow maximum flexibility of its execution. 
+There are different ways to manage those parameters, as there are different type of parameters, 
+as there are different type of processes/applications that can run as on a Server. 
+We will cover all those type of parameters, for the scope of a java application, in detail further below this post. 
+The catch here is that the parameters of an application is usually managed separately than the code that will be packaged as the executable.&lt;br /&gt;
+A good reading about the why’s and how’s is the post from &lt;strong&gt;&lt;a href=&quot;https://12factor.net/config&quot;&gt;12 factor app&lt;/a&gt;&lt;/strong&gt;&lt;/p&gt;
 
-&lt;p&gt;J’ai rencontré un de ces problèmes dans le cadre du development de &lt;a href=&quot;https://HomeOfTheWizard.github.io/pizzicato/&quot;&gt;Pizzicato JS&lt;/a&gt;, une librairie visant à simplifier la création et manipulation du son dans le navigateur (&lt;a href=&quot;github.com/HomeOfTheWizard/pizzicato/&quot;&gt;code source ouvert&lt;/a&gt;). Pizzicato compte une batterie de tests automatiques interagissant avec l’API WebAudio. Ces tests sont exécutés en Chrome depuis Travis CI à chaque nouveau commit.&lt;/p&gt;
+&lt;p&gt;Many applications today manages some configuration/parameters that needs to be kept secret, aka &lt;em&gt;secrets&lt;/em&gt;. 
+Sometimes it is the credentials to access a DB, some other times it is the key to encrypt a communication with another application. 
+Different from other parameter/config, these values must be stored and managed by the application carefully in order to prevent their leak.&lt;/p&gt;
 
-&lt;p&gt;Avec les versions récentes de Chrome, les tests qui dépendent du son échouent systématiquement :&lt;/p&gt;
+&lt;p&gt;First lets see the different ways to pass application parameters in a java, then we will focus on the best practices to do so for secrets specifically.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;assets/images/failed-build.jpg&quot; /&gt;&lt;/p&gt;
+&lt;h1&gt; Arguments ? Properties ? Variables ? &lt;/h1&gt;
+&lt;p&gt;As a junior, or even an experienced developer you may sometimes confuse one for the other if you never had to deal with the subtle differences.
+We will cover all those in details, and have a resumé of differences at the end.&lt;/p&gt;
 
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;Chrome 80.0.3987 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Linux 0.0.0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; Sound actions should trigger &lt;span class=&quot;s1&quot;&gt;'end'&lt;/span&gt; when buffer ended FAILED
-	Expected spy endCallback to have been called.
-	    at tests/Sound.test.js:270:26
+&lt;h3&gt;1. Program Arguments&lt;/h3&gt;
+&lt;p&gt;Program arguments in java are the parameters you provide when running your java application. They are also called command-line arguments. Here is how you can use it:&lt;/p&gt;
 
-Chrome 80.0.3987 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Linux 0.0.0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;: Executed 118 of 144 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;1 FAILED&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;0 secs / 2.516 secs&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;p&gt;Lets say you have a main class like so;&lt;/p&gt;
 
-Chrome 80.0.3987 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Linux 0.0.0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; Sound actions should offset upon playing when specified FAILED
-	Expected spy endCallback to have been called.
-	    at tests/Sound.test.js:287:26
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Echo&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;s:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-Chrome 80.0.3987 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Linux 0.0.0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;: Executed 119 of 144 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;2 FAILED&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;0 secs / 4.527 secs&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+&lt;p&gt;Now when you package your application as a jar, and you run it, you can pass arguments like so.&lt;/p&gt;
 
-&lt;h2 id=&quot;la-politique-autoplay-de-chrome&quot;&gt;La politique Autoplay de Chrome&lt;/h2&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;java &lt;span class=&quot;nt&quot;&gt;-jar&lt;/span&gt; MyApplication.jar paramStr1 paramStr2&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;Cet échec n’est pas un mystère : les tests vont à l’encontre de la politique autoplay de Chrome : pas d’audio sans interaction utilisateur. Or, dans un contexte ou les tests automatiques se déroulent dans un processus virtuel au sein de Travis CI, l’interaction utilisateur est impossible.&lt;/p&gt;
+&lt;p&gt;The arguments you pass after the jar file will be given to your main method as String parameters. &lt;br /&gt;
+If you want to change the type of the argument, you need to parse of cast the String object.&lt;br /&gt;
+Note that since we are talking about running our application in command line, only String parameters makes sense in that context.&lt;/p&gt;
 
-&lt;p&gt;Heureusement, on peut lancer Chrome avec une option spéciale pour lui demander de désactiver cette politique :&lt;/p&gt;
+&lt;h3&gt;2. JVM arguments&lt;/h3&gt;
+&lt;p&gt;When we execute a java program from the command line, using the &lt;code&gt;java&lt;/code&gt; executable from the JRE lib, we can pass multiple &lt;em&gt;Options&lt;/em&gt; to the JVM. &lt;br /&gt;
+The &lt;code&gt;java -jar&lt;/code&gt; option is only one of them.&lt;/p&gt;
 
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;Chrome &lt;span class=&quot;nt&quot;&gt;--autoplay-policy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;no-user-gesture-required&lt;span class=&quot;s1&quot;&gt;'&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+&lt;p&gt;It is easy to confuse them with Program arguments, since they are also sometimes called &lt;em&gt;JVM arguments&lt;/em&gt;.
+Different from Program args, JVM args are passed to the JVM directly and are meant to modify its behaviour. The most known usage is to set the maximum Heap size &lt;code&gt;-Xmx&lt;/code&gt; flag.&lt;/p&gt;
 
-&lt;p&gt;Pour intégrer ceci dans Pizzicato, il suffit de modifier le &lt;a href=&quot;https://github.com/HomeOfTheWizard/pizzicato/blob/master/karma.conf.js&quot;&gt;fichier de configuration de Karma&lt;/a&gt;. Au moment de définir les &lt;code class=&quot;highlighter-rouge&quot;&gt;customLaunchers&lt;/code&gt; nous pouvons aussi profiter pour passer des arguments additionnels.&lt;/p&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;java &lt;span class=&quot;nt&quot;&gt;-jar&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-Xmx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;2g MyApplication.jar paramStr1 paramStr2&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot; data-lang=&quot;javascript&quot;&gt;&lt;span class=&quot;nx&quot;&gt;customLaunchers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;nl&quot;&gt;Chrome_travis_ci&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;nl&quot;&gt;base&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'Chrome'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-        &lt;span class=&quot;nx&quot;&gt;flags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
-            &lt;span class=&quot;s1&quot;&gt;'--no-sandbox'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;s1&quot;&gt;'--autoplay-policy=no-user-gesture-required'&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+&lt;p&gt;A full list of options for the Hotspot JVM is available &lt;a href=&quot;https://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html&quot;&gt;here&lt;/a&gt; along the standard options that are general to all JVMs.&lt;/p&gt;
 
-&lt;p&gt;TravisCI est vert à nouveau.&lt;/p&gt;
+&lt;h3&gt;3. System Properties&lt;/h3&gt;
+&lt;p&gt;A specific type of JVM argument allows you to set the properties of the JVM, called &lt;a href=&quot;https://docs.oracle.com/javase/tutorial/essential/environment/sysprop.html&quot;&gt;System Properties&lt;/a&gt;. 
+Note that &lt;code&gt;-DsystemProperty1=myStrPropValue&lt;/code&gt; below is a JVM argument given with the &lt;code&gt;-D&lt;/code&gt; flag.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;assets/images/successful-build.jpg&quot; /&gt;&lt;/p&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;java &lt;span class=&quot;nt&quot;&gt;-jar&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-DmySystemProperty&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;mySysPropValue MyApplication.jar paramStr1 paramStr2&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;h2 id=&quot;et-dans-la-vraie-vie-&quot;&gt;Et dans la vraie vie ?&lt;/h2&gt;
+&lt;p&gt;Those properties are available from all applications and sub-processes running in the JVM execution. Some predefined properties gives info about the current execution context of your JVM. They can be used in a Java application like so:&lt;/p&gt;
 
-&lt;p&gt;Comprendre les conditions qui mènent les navigateurs à bloquer le contenu audio est utile pour que nos utilisateurs puissent profiter du web sans devoir bidouiller des options obscures dans la ligne de commande.&lt;/p&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sysProps&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getProperty&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pathSeperator&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sysProps&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;path.separator&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;sysProps&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setProperty&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;myCustomProperty&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;myPropertyValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;h3 id=&quot;chrome&quot;&gt;Chrome&lt;/h3&gt;
+&lt;p&gt;Beware that setting new Properties or overriding an existing one will be persistent only during the current execution of the JVM and will be deleted once JVM shuts down.
+System Properties, like all &lt;a href=&quot;https://docs.oracle.com/en/java/javase/17/docs/api/index.html&quot;&gt;Properties&lt;/a&gt; objects are mere objects available in the Heap and their value is not persisted anywhere on the disk.&lt;/p&gt;
 
-&lt;p&gt;Dans Chrome, l’autoplay en muet (volume 0) est permis - d’où les boutons “Tap to unmute” qui apparaissent un peu partout. Sinon, il faut impérativement un de ces scénarios :&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;l’utilisateur a interagit avec la page (par ex. en clickant quelque part),&lt;/li&gt;
-  &lt;li&gt;l’utilisateur a ajouté le site dans son écran d’accueil ou l’a installé en tant que Progressive Web App, ou&lt;/li&gt;
-  &lt;li&gt;le site a un &lt;em&gt;Media Engagement Index&lt;/em&gt; (MEI) suffisant.&lt;/li&gt;
-&lt;/ul&gt;
+&lt;h3&gt;4. Environment Variables&lt;/h3&gt;
+&lt;p&gt;Environment variables are nothing specific to Java. They are actually set outside the context of our JVM execution. 
+They are variables defined on the OS level and are available to all processes (unless we define availability constraints on them).
+They are available in all Linux based systems and Windows (with subtle differences). You can this &lt;a href=&quot;https://en.wikipedia.org/wiki/Environment_variable&quot;&gt;wiki page&lt;/a&gt; or this &lt;a href=&quot;https://www.twilio.com/blog/how-to-set-environment-variables.html&quot;&gt;blog post&lt;/a&gt; how to set them.&lt;/p&gt;
 
-&lt;p&gt;Ce dernier point peut paraître un peu obscur. Le MEI tente de mesurer à quel point l’usager est habitué à consommer de l’audio/vidéo sur un site particulier. Pour ce faire, Chrome fait le calcul du ratio des visites totales contre les visites incluant une consommation média considéré comme suffisante (çad plus de sept secondes, audio non-muet, onglet actif et taille d’écran supérieure à 200x140).&lt;/p&gt;
+&lt;p&gt;To access and use them in java applications like so&lt;/p&gt;
 
-&lt;p&gt;Pour les utilisateurs de Chrome, ces stats sont visibles sur &lt;a href=&quot;chrome://media-engagement&quot;&gt;chrome://media-engagement&lt;/a&gt;.&lt;/p&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;envVars&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getenv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;shell&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;envVars&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;SHELL&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;The current Shell type is: &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;shell&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;The current Operating System is: &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getenv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;OS&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;&lt;img src=&quot;assets/images/mei.jpg&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Keep in mind that different platforms operate in different ways, e.g., on UNIX, Linux, and macOS, environment variables are case-sensitive, whereas on Microsoft Windows they are not.&lt;/em&gt;&lt;/p&gt;
 
-&lt;h3 id=&quot;firefox&quot;&gt;Firefox&lt;/h3&gt;
+&lt;p&gt;&lt;em&gt;In a java application, we can use environment variables available to our JVM process. But Java does not have a standard way to modify its environment. This is a decision taken to make the language and application portable. and its design isolated from its execution environment.&lt;/em&gt;&lt;/p&gt;
 
-&lt;p&gt;Les règles de Firefox sont similaires à celles de Chrome : l’audio en muet est permis et l’interaction utilisateur est requise pour tout ce qui est audible.&lt;/p&gt;
+&lt;h3&gt;5. Properties specific to Frameworks&lt;/h3&gt;
+&lt;p&gt;If you are using spring or maven, you probably heard about things like (respectively) application properties or project properties.&lt;/p&gt;
 
-&lt;p&gt;De plus, Firefox permet l’autoplay si l’utilisateur a déjà donné la permission au site d’accéder à la camera ou le micro. Ceci s’avère utile pour les sites de vidéo-conférence.&lt;/p&gt;
+&lt;h6&gt;Spring application properties&lt;/h6&gt;
+&lt;p&gt;The best description comes from the official &lt;a href=&quot;https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.external-config&quot;&gt;docs&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Spring Boot lets you externalize your configuration so that you can work with the same application code in different environments. You can use a variety of external configuration sources including Java properties files, YAML files, environment variables, and command-line arguments.&lt;/p&gt;
+&lt;p&gt;Property values can be injected directly into your beans by using the @Value annotation, accessed through Spring’s Environment abstraction, or be bound to structured objects through @ConfigurationProperties.&lt;/p&gt;
+&lt;/blockquote&gt;
 
-&lt;p&gt;En ce qui concerne les sites “de confiance” Firefox opte pour une approche plus direct. Lorsqu’un site avec autoplay est bloqué, une icône apparaît dans la barre URL. L’usager peut clicker dessus et manuellement indiquer que le site peut faire de l’autoplay sans que le navigateur s’en mêle.&lt;/p&gt;
+&lt;p&gt;As described above the @Value/@ConfigurationProperties annotations allow you to use these application parameters in your code. The most commonly used way of defining those parameters is an application.properties/.yaml file. But it is not the only way. Spring have multiple ways/places to define those properties and with an order of priority to allow overriding one defined in another. You can find the detailed list of hierarchy in the official documentation.  &lt;br /&gt;
+One of them that you should not confuse with System properties, are spring program arguments. You can add application properties them from cli like so &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;java -jar mySpringApp.jar --someProperty=someValue&lt;/code&gt; (see &lt;a href=&quot;https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.external-config.command-line-args&quot;&gt;here&lt;/a&gt; for more details).&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;assets/images/autoplay-ff.jpg&quot; /&gt;
-&lt;small class=&quot;caption&quot;&gt;Image de &lt;a href=&quot;https://hacks.mozilla.org/2019/02/firefox-66-to-block-automatically-playing-audible-video-and-audio/&quot;&gt;Mozilla&lt;/a&gt;&lt;/small&gt;&lt;/p&gt;
+&lt;p&gt;The already explained configuration parameters like JVM arguments, system properties and environment variables can be sourced to define the spring application properties and used via the respective annotations.&lt;/p&gt;
 
-&lt;h2 id=&quot;ce-nest-pas-fini&quot;&gt;Ce n’est pas fini&lt;/h2&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;nd&quot;&gt;@Value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;#{systemEnvironment[&apos;MY_SECRET&apos;]}&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// via environment variables&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
 
-&lt;p&gt;Les règles autour de l’audio et vidéo sur les navigateurs vont encore évoluer de façon importante dans les années qui viennent. Des discussions autour de l’étendue des restrictions autoplay &lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=1420389&quot;&gt;se déroulent encore&lt;/a&gt;. D’un côté, démarrer des vidéos automatiquement, même sans audio, consomme des données des forfaits potentiellement limités. D’un autre, &lt;a href=&quot;https://www.bleepingcomputer.com/news/google/google-fixes-issue-that-broke-millions-of-web-based-games-in-chrome/&quot;&gt;plein des applications multimédia&lt;/a&gt; dépendent de cette fonctionnalité. En tant que développeurs, il faudra suivre de près cette évolution.&lt;/p&gt;
+&lt;span class=&quot;nd&quot;&gt;@Value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;#{systemProperties[&apos;myApp.mySystemProperty&apos;]}&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// via System properties passed in cli:  java -jar -DmyApp.mySystemProperty=someVal mySpringApp.jar &lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s2&lt;/span&gt;
 
-&lt;h2 id=&quot;en-savoir-plus&quot;&gt;En savoir plus&lt;/h2&gt;
+&lt;span class=&quot;nd&quot;&gt;@Value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;${myApp.myAppProperty:aDefaultValue}&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// via application.property file or other PropertySource definition&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;Malheureusement, la plupart de la documentation autour des politiques autoplay des navigateurs est exclusivement en anglais. Voici quelques exemples :&lt;/p&gt;
+&lt;p&gt;if you are using spring boot, you can directly use the following syntax to access env variables and system properties&lt;/p&gt;
 
-&lt;ul&gt;
-  &lt;li&gt;Détails sur la &lt;a href=&quot;https://developers.google.com/web/updates/2017/09/autoplay-policy-changes#mei&quot;&gt;politique autoplay Chrome&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;Article de Chris Pearce concernant &lt;a href=&quot;https://hacks.mozilla.org/2019/02/firefox-66-to-block-automatically-playing-audible-video-and-audio/&quot;&gt;l’autoplay sur Firefox&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;Article de Kevin Decker sur &lt;a href=&quot;https://webkit.org/blog/7734/auto-play-policy-changes-for-macos/&quot;&gt;l’autoplay sur Safari&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;Documentation de la politique &lt;a href=&quot;https://docs.microsoft.com/fr-fr/microsoft-edge/dev-guide/browser-features/autoplay-policies&quot;&gt;autoplay sur Edge&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;</content>
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;nd&quot;&gt;@Value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;${MY_SECRET:aDefaultValue}&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;nd&quot;&gt;@Value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;${myJVM.mySystemProperty:aDefaultValue}&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
+&lt;p&gt;Or a cleaner and simpler way, just define them in the same place as other application properties, like in your application.properties/.yaml file
+Then access those properties via the @Value annotation with a simpler expression.&lt;/p&gt;
 
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;myApp.mySecretIndirect&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;MY_SECRET&lt;/span&gt;:aDefaultValue&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
+myApp.mySysPropIndirect&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;myJVM&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.myProperty&lt;/span&gt;:aDefaultValue&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
+myApp.myAppProperty&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;SomeValue&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
+&lt;h6&gt;Maven properties&lt;/h6&gt;
+&lt;p&gt;Again from the official &lt;a href=&quot;https://maven.apache.org/pom.html#properties&quot;&gt;docs&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Maven properties are value placeholders, like properties in Ant. Their values are accessible anywhere within a POM by using the notation ${X}, where X is the property. Or they can be used by plugins as default values&lt;/p&gt;
+&lt;/blockquote&gt;
 
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;project&amp;gt;&lt;/span&gt;
+  ...
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;properties&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;maven.compiler.source&amp;gt;&lt;/span&gt;1.7&lt;span class=&quot;nt&quot;&gt;&amp;lt;/maven.compiler.source&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;maven.compiler.target&amp;gt;&lt;/span&gt;1.7&lt;span class=&quot;nt&quot;&gt;&amp;lt;/maven.compiler.target&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- Following project.-properties are reserved for Maven in will become elements in a future POM definition. --&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- Don&apos;t start your own properties properties with project. --&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;project.build.sourceEncoding&amp;gt;&lt;/span&gt;UTF-8&lt;span class=&quot;nt&quot;&gt;&amp;lt;/project.build.sourceEncoding&amp;gt;&lt;/span&gt; 
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;project.reporting.outputEncoding&amp;gt;&lt;/span&gt;UTF-8&lt;span class=&quot;nt&quot;&gt;&amp;lt;/project.reporting.outputEncoding&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;/properties&amp;gt;&lt;/span&gt;
+  ...
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/project&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
+&lt;p&gt;And again like the above spring properties, maven properties can as well be sourced from the basic java configuration parameters like JVM arguments, system properties and environment variables.&lt;br /&gt;
+Once defined, you can use them with the below syntax.&lt;/p&gt;
 
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;properties&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- environment variable --&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;myApp.githubPAT&amp;gt;&lt;/span&gt;${env.MY_GITHUB_PAT}&lt;span class=&quot;nt&quot;&gt;&amp;lt;/myApp.githubPAT&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- JVM system properties --&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;myApp.javaPath&amp;gt;&lt;/span&gt;${java.home}&lt;span class=&quot;nt&quot;&gt;&amp;lt;/myApp.javaPath&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;myApp.OS&amp;gt;&lt;/span&gt;${os.name}&lt;span class=&quot;nt&quot;&gt;&amp;lt;/myApp.OS&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- JVM System properties , you can give custom ones on cli &quot;mvn -DmyApp.logging.path=... clean install&quot; and access them in pom like normal properties --&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;myApp.logging.file&amp;gt;&lt;/span&gt;${myApp.logging.path}/myApp.log&lt;span class=&quot;nt&quot;&gt;&amp;lt;/myApp.logging.file&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- maven predefined properties --&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;myApp.execId&amp;gt;&lt;/span&gt;myApp-${maven.build.timestamp}&lt;span class=&quot;nt&quot;&gt;&amp;lt;/myApp.execId&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;jacoco.unit.file&amp;gt;&lt;/span&gt;${project.build.directory}/jacoco-unit.exec&lt;span class=&quot;nt&quot;&gt;&amp;lt;/jacoco.unit.file&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- user defined property --&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;version.jacoco&amp;gt;&lt;/span&gt;0.8.7&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version.jacoco&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;version.jacoco.plugin&amp;gt;&lt;/span&gt;${version.jacoco}&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version.jacoco.plugin&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/properties&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;If you are interested in going more into the details of maven, the blog post &lt;a href=&quot;./maven_sisu&quot;&gt;here&lt;/a&gt; is a good article to start with.&lt;/p&gt;
+
+&lt;h3&gt;6. Resumé &lt;/h3&gt;
+&lt;p&gt;If we take those words and analyse the literal meanings outside the scope of programming, we already have a hint of their differences.&lt;br /&gt;
+&lt;a href=&quot;https://en.wikipedia.org/wiki/Command-line_interface#Arguments&quot;&gt;Arguments&lt;/a&gt; ?  Short for “arguments of a command line expression”. &lt;br /&gt;
+&lt;a href=&quot;https://www.oxfordlearnersdictionaries.com/definition/american_english/property#:~:text=1%5Buncountable%5D%20a%20thing%20or,intellectual%20property%2C%20public%20property%20Thesaurus&quot;&gt;Properties&lt;/a&gt; ? They are values that defines something.&lt;br /&gt;
+&lt;a href=&quot;https://www.oxfordlearnersdictionaries.com/definition/english/variable_1?q=variable&quot;&gt;Variables&lt;/a&gt; ? Something that can change outside our will.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Program Arguments: String Parameters we pass to our main method. Must be given set startup.&lt;/li&gt; 
+&lt;li&gt;JVM Arguments: Options that affect how the JVM operates. Must be given set startup.&lt;/li&gt; 
+&lt;li&gt;System Properties: Value/Keys available in every application running in the JVM. Can be set via command line, or by the code of the java application.&lt;/li&gt;
+&lt;li&gt;Environment Variables: Values that are set outside the execution of the JVM and cannot be changed by the JVM.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img src=&quot;../assets/images/JavaPropsVarsArgs.png&quot; /&gt;&lt;/p&gt;
+
+&lt;h1&gt; Secrets ?&lt;/h1&gt;
+&lt;p&gt;Now lets get back to the focus element of this post. The credentials in our configuration, aka. secrets.&lt;/p&gt;
+
+&lt;p&gt;There are different methods to give secret values as parameters to an application.
+The most basic and old way, is to have the credentials stored in a configuration file only a server we consider secure, and we limit all access to it. Like the production server.
+For applications that run on bare metal or VMs, this is most often the chosen method.&lt;/p&gt;
+
+&lt;p&gt;Just to give a glimpse of some best practices used today without diving into too much details since it is not the subject of this blog post,
+If you are using deployment tools like ansible, you can profit from features like &lt;a href=&quot;https://docs.ansible.com/ansible/latest/vault_guide&quot;&gt;Ansible Vault&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;../assets/images/hashicorp_ansible_jenkins_vm.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;It allows you to encrypt them with a key so your secret file that is encrypted may even be pushed on version control.
+It will then decrypt them on the fly during deployment.
+So only the decryption key is needed to be managed during the deployment and execution of the application.
+The encryption key is the real secret here and can be stored in your CI tool that will launch the deployments, or you can use a secret manager like &lt;a href=&quot;https://www.vaultproject.io/&quot;&gt;Hashicorp Vault&lt;/a&gt; to keep your secrets.
+Most CI tools, like jenkins have &lt;a href=&quot;https://plugins.jenkins.io/hashicorp-vault-plugin/&quot;&gt;plugins&lt;/a&gt;, allowing to communicate with HashiCorp Vault to fetch your secrets during your pipeline execution instead of storing them on the CI server.&lt;/p&gt;
+
+&lt;div class=&quot;alert&quot;&gt;
+    &lt;div style=&quot;margin-left: 0.7em;&quot;&gt;
+        &lt;!--&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;16&quot; height=&quot;16&quot; fill=&quot;currentColor&quot; class=&quot;bi bi-exclamation-triangle-fill&quot; viewBox=&quot;0 0 16 16&quot;&gt;
+            &lt;path d=&quot;M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z&quot;/&gt;
+        &lt;/svg&gt;--&gt; 
+        Warning:
+        &lt;em&gt;The most secure way to manage secrets is not to persist them at all apart anywhere we consider secure.
+        Duplicating the places where you persist the secret widens the attack surface and increase the risk of leak of the secret.&lt;/em&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;h3&gt; Secrets accessible to the JVM from Environment Variables &lt;/h3&gt;
+&lt;p&gt;Application execution environments are considered not secure since it is a place we do regular changes. Lots of ins and outs, difficult to track and secure.
+This is why key management applications, like HashiCorp Vault has come into being. Their only purpose is to store your secrets.&lt;/p&gt;
+
+&lt;p&gt;Execution environments like containers have the advantage of being ephemeral which in turns makes the fact of having the secrets accessible on the execution environment more secure. 
+Making them accessible via environment variables instead of a config file persisted on the FS is considered relatively more secure. 
+There are still some concerns about this approach in general ( &lt;a href=&quot;https://www.cloudtruth.com/blog/the-pitfalls-of-using-environment-variables-for-config-and-secrets&quot;&gt;one&lt;/a&gt; or &lt;a href=&quot;https://www.trendmicro.com/en_za/research/22/h/analyzing-hidden-danger-of-environment-variables-for-keeping-secrets.html&quot;&gt;two&lt;/a&gt; among other tones of discussion on platforms like stackexchange and stackoverflow, of blog posts are available on the net)
+but most known Container Execution Environment Providers like Docker and Kubernetes has components (&lt;a href=&quot;https://kubernetes.io/docs/concepts/configuration/secret/&quot;&gt;etcd&lt;/a&gt; for K8s) that are considered relatively secure to store the secrets for you.
+Kubernetes has even a HashiCorp Vault &lt;a href=&quot;https://www.vaultproject.io/use-cases/kubernetes&quot;&gt;plugin&lt;/a&gt; that allows fetching the secrets from Vault and injecting into the pods, instead of storing them in etcd.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;../assets/images/hashicorp_jenkins_kubernetes.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Plus, this option has the advantage of being able to put all the configurations related to your application to version control (recommended by the &lt;a href=&quot;https://7factorconfig.org/&quot;&gt;7 factor config&lt;/a&gt;).
+The only thing to manage in the execution environment is the credentials to access to Vault.&lt;/p&gt;
+
+&lt;h3&gt; Secrets injected directly into the JVM from Secret Manager &lt;/h3&gt;
+&lt;p&gt;If we compare the above methods:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;The first approach with bare metal VMs force us to handle secrets manually, while the second automates the injection of the secrets to the application runtime environment.&lt;/li&gt;
+  &lt;li&gt;But the second still force us to administrate the access to the vault from the runtime environments of our application.&lt;br /&gt;
+For example we have to use specific plugins/tools/agents for each environment to access to the Vault and fetch secrets.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Frameworks like &lt;a href=&quot;https://cloud.spring.io/spring-cloud-vault/reference/html/&quot;&gt;spring-cloud-vault&lt;/a&gt; or tools like &lt;a href=&quot;https://homeofthewizard.github.io/vault-maven-plugin/&quot;&gt;maven-vault-plugin&lt;/a&gt; allows the JVM to fetch the secrets directly from the HashiCorp Vault.&lt;br /&gt;
+They are pure Java solutions so you do not have to install anything specific to the execution environment, so can be used even in development environments.&lt;br /&gt;
+Plus your secrets are not persisted anywhere, but exists only in memory of your application.&lt;/p&gt;
+
+&lt;h1&gt; Appendix: References &lt;/h1&gt;
+&lt;p&gt;https://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html  &lt;br /&gt;
+https://docs.oracle.com/javase/tutorial/essential/environment/index.html&lt;br /&gt;
+https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Properties.html  &lt;br /&gt;
+https://7factorconfig.org/ &lt;br /&gt;
+https://12factor.net/ &lt;br /&gt;
+https://www.twilio.com/blog/working-with-environment-variables-in-java
+https://betterdev.blog/command-line-arguments-anatomy-explained/
+https://developer.hashicorp.com/vault/docs/agent-and-proxy/agent&lt;br /&gt;
+https://security.stackexchange.com/questions/197784/is-it-unsafe-to-use-environmental-variables-for-secret-data&lt;br /&gt;
+https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.external-config&lt;br /&gt;
+https://docs.spring.io/spring-framework/reference/core/beans/annotation-config/value-annotations.html&lt;/p&gt;</content>
+
+      
+      
+      
+      
+      
 
       <author>
-          <name></name>
-
-
+          <name>Özgün ÖZ</name>
+        
+        
       </author>
 
+      
 
-
-
+      
         <category term="development" />
+      
+        <category term="java" />
+      
 
-        <category term="JS" />
+      
+        <summary type="html">This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.</summary>
+      
 
-
-
-        <summary type="html">Les navigateurs implémentent des fonctionnalités permettant de bloquer le contenu audio qui démarre automatiquement. Comment s'en sortir en tant que développeur ?</summary>
-
-
-
-
+      
+      
     </entry>
-
+  
     <entry>
-      <title type="html">Web Audio: the ugly click and the human ear</title>
-      <link href="http://HomeOfTheWizard.github.io/ramp-to-value" rel="alternate" type="text/html" title="Web Audio: the ugly click and the human ear" />
-      <published>2015-12-26T00:00:00+01:00</published>
-      <updated>2015-12-26T00:00:00+01:00</updated>
-      <id>http://HomeOfTheWizard.github.io/ramp-to-value</id>
-      <content type="html" xml:base="http://HomeOfTheWizard.github.io/ramp-to-value">&lt;style&gt;
-.button {
-    border: none;
-    color: white;
-    font-weight: bold;
-    padding: 10px;
-    min-width: 50px;
-    min-height: 50px;
-    border-radius: 5px;
-    position: relative;
-    -webkit-appearance: button;
-    cursor: pointer;
-    text-transform: none;
-}
+      <title type="html">Understanding Maven core for plugin Development</title>
+      <link href="/maven_sisu" rel="alternate" type="text/html" title="Understanding Maven core for plugin Development" />
+      <published>2023-08-30T12:18:00+02:00</published>
+      <updated>2023-08-30T12:18:00+02:00</updated>
+      <id>/maven_sisu</id>
+      <content type="html" xml:base="/maven_sisu">&lt;p&gt;Deep dive into maven’s dependency management and classloader system to help the development of plugins&lt;/p&gt;</content>
 
-.stop-button {
-    background-color: rgb(178, 78, 78);
-    border-radius: 5px 0px 0px 5px;
-}
-
-.stop-button:hover {
-    background-color: rgb(200, 106, 106);
-}
-
-.stop-button:before {
-    content: &quot;&quot;;
-    position: absolute;
-    left: 15px;
-    width: 21px;
-    height: 21px;
-    margin-top: -10px;
-    background: white;
-}
-
-.play-button {
-    background-color: rgb(103, 178, 78);
-    min-width: 100px;
-    border-radius: 0px 5px 5px 0px;
-}
-
-.play-button:hover {
-    background-color: rgb(126, 200, 101);
-}
-
-.play-button:before {
-    content: &quot;&quot;;
-    position: absolute;
-    left: 38px;
-    border: 8px solid transparent;
-    border-width: 12px 30px;
-    border-left-color: #FFFFFF;
-    margin-top: -12px;
-    background: transparent;
-}
-&lt;/style&gt;
-
-&lt;p&gt;While playing around with a Web Audio demo, I noticed a clicking sound every time a I stopped an oscillator.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot; data-lang=&quot;javascript&quot;&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;context&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;AudioContext&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;oscillatorNode&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;createOscillator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-
-&lt;span class=&quot;nx&quot;&gt;oscillatorNode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;destination&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-&lt;span class=&quot;nx&quot;&gt;oscillator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-&lt;span class=&quot;nx&quot;&gt;oscillator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;stop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// click!&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;&lt;button class=&quot;button stop-button&quot; id=&quot;1-stop-button&quot;&gt;&lt;/button&gt;
-&lt;button class=&quot;button play-button&quot; id=&quot;1-play-button&quot;&gt;&lt;/button&gt;
-&lt;script&gt;
-	var context = new AudioContext();
-	var oscillator;
-	var firstIsPlaying;
-	(function() {
-		document.getElementById('1-play-button').addEventListener('click', function() {
-			if(firstIsPlaying) return;
-			oscillator = context.createOscillator();
-			oscillator.connect(context.destination);
-			oscillator.start();
-			firstIsPlaying = true;
-		}, false);
-		document.getElementById('1-stop-button').addEventListener('click', function() {
-			if (!firstIsPlaying) return;
-			oscillator.stop();
-			firstIsPlaying = false;
-		}, false);
-	})();
-&lt;/script&gt;&lt;/p&gt;
-
-&lt;p&gt;Could it be an implementation problem on the browser? Not likely, since this happened in all browsers I tested.&lt;/p&gt;
-
-&lt;p&gt;Turns out the click sound happens because I’m abruptingly cutting the sound wave at a point other than the natural zero crossing:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;assets/images/zero-crossing-point.svg&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Is there a way to avoid this clicking sound then?&lt;/p&gt;
-
-&lt;p&gt;We have two options:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Stopping the sound only at zero-point crossings, or&lt;/li&gt;
-  &lt;li&gt;Creating a node gain to gradually decrease the gain to zero before stopping&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;I will focus on the second option since - luckily - Web Audio API has us covered.&lt;/p&gt;
-
-&lt;h2 id=&quot;gradual-changes-to-an-audioparam-value&quot;&gt;Gradual changes to an audioParam value&lt;/h2&gt;
-
-&lt;h3 id=&quot;exponential-vs-linear&quot;&gt;Exponential vs linear&lt;/h3&gt;
-
-&lt;p&gt;There are several Web Audio functions that can gradually change an audioParam:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot; data-lang=&quot;javascript&quot;&gt;&lt;span class=&quot;nx&quot;&gt;linearRampToValueAtTime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;endTime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// linear&lt;/span&gt;
-&lt;span class=&quot;nx&quot;&gt;exponentialRampToValueAtTime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;endTime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// exponential&lt;/span&gt;
-&lt;span class=&quot;nx&quot;&gt;setTargetAtTime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;startTime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;timeConstant&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// exponential&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;One difference between them is the easing function that is used to change the audio param value; either linear (left) or exponential (right).&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;assets/images/exponential-linear-curves.svg&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Mozilla has a piece of advise to those unsure of which one to use:&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;Exponential ramps are considered more useful when changing frequencies or playback rates than linear ramps because of the way the human ear works.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;And they are right: the human ear perceives sound on a logarithmic principle. An A3 note is a frequency of 220Hz, whereas A4 is 440Hz and A5 is 880Hz. Loudness also works this way: a tenfold increase in sound power could be described as being twice as loud. Hence, using an exponential gain decrease will be perceived as linear by the human ear.&lt;/p&gt;
-
-&lt;h3 id=&quot;exponentialramptovalueattime-vs-settargetattime&quot;&gt;exponentialRampToValueAtTime vs setTargetAtTime&lt;/h3&gt;
-
-&lt;p&gt;We will choose and exponential way of gradually decreasing the gain. This leaves us with &lt;code class=&quot;highlighter-rouge&quot;&gt;exponentialRampToValueAtTime&lt;/code&gt; vs &lt;code class=&quot;highlighter-rouge&quot;&gt;setTargetAtTime&lt;/code&gt;. Some difference between them are:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;exponentialRampToValueAtTime&lt;/code&gt; will get to the value precisely at the time specified. However, using this function, an exponential ramp to zero &lt;a href=&quot;https://webaudio.github.io/web-audio-api/#widl-AudioParam-exponentialRampToValueAtTime-AudioParam-float-value-double-endTime&quot;&gt;is not possible&lt;/a&gt; because of the math used to calculate the values over time.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;setTargetAtTime&lt;/code&gt; exponentially moves towards the value given by the target parameter, but instead of specifying an end time, we give the function an exponential decay rate after which the value will decrease about 2/3rds. This means we can ask the function to go all the way down to zero. Theoretically it will never really reach zero since it will be exponentially decaying, but in real life it &lt;em&gt;will&lt;/em&gt; as soon as the value is too small to be represented with a float.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Let’s choose &lt;code class=&quot;highlighter-rouge&quot;&gt;setTargetAtTime&lt;/code&gt; because we want to go all the way down to zero and because we are not too worried about getting there at a super precise time. As long as the fade-out time is fast enough to be imperceptible but slow enough to remove the click, we will be happy.&lt;/p&gt;
-
-&lt;h3 id=&quot;using-settargetattime-to-remove-the-click&quot;&gt;Using setTargetAtTime to remove the click&lt;/h3&gt;
-
-&lt;p&gt;Before trying out &lt;code class=&quot;highlighter-rouge&quot;&gt;setTargetAtTime&lt;/code&gt; to get rid of the ugly click, we must be of a couple gotchas:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;We must choose a decay time after which the gain value will decrease about 2/3rds. After a bit of experimenting, I found out that a decay time of 15 milliseconds gives the impression of being immediate but at the same time removes the click. Remember: Web Audio uses seconds instead of milliseconds!&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot; data-lang=&quot;javascript&quot;&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;context&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;AudioContext&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;oscillator&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;createOscillator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;gainNode&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;createGain&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-
-&lt;span class=&quot;nx&quot;&gt;oscillator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;gainNode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;nx&quot;&gt;gainNode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;destination&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;nx&quot;&gt;oscillator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-
-&lt;span class=&quot;nx&quot;&gt;stopButton&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;addEventListener&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'click'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;nx&quot;&gt;gainNode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;gain&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;setTargetAtTime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;currentTime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.015&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;&lt;button class=&quot;button stop-button&quot; id=&quot;2-stop-button&quot;&gt;&lt;/button&gt;
-&lt;button class=&quot;button play-button&quot; id=&quot;2-play-button&quot;&gt;&lt;/button&gt;
-&lt;script&gt;
-	var gainNode;
-	var secondIsPlaying;
-	(function() {
-		document.getElementById('2-play-button').addEventListener('click', function() {
-			if(secondIsPlaying) return;
-			gainNode = context.createGain();
-			oscillator = context.createOscillator();
-			oscillator.connect(gainNode);
-			gainNode.connect(context.destination);
-			oscillator.start();
-			secondIsPlaying = true;
-		}, false);
-		document.getElementById('2-stop-button').addEventListener('click', function() {
-			if (!secondIsPlaying) return;
-			gainNode.gain.setTargetAtTime(0, context.currentTime, 0.015);
-			setTimeout(function() {
-				oscillator.stop();
-				secondIsPlaying = false;
-			}, 40);
-		}, false);
-	})();
-&lt;/script&gt;&lt;/p&gt;
-
-&lt;p&gt;There’s no more click. We are all happy.&lt;/p&gt;
-
-&lt;h3 id=&quot;using-exponentialramptovalueattime-to-remove-the-click&quot;&gt;Using exponentialRampToValueAtTime to remove the click&lt;/h3&gt;
-
-&lt;p&gt;Since we are at it, let’s see how it would’ve turned out using &lt;code class=&quot;highlighter-rouge&quot;&gt;exponentialRampToValueAtTime&lt;/code&gt; - which I found to be a bit trickier.&lt;/p&gt;
-
-&lt;p&gt;One gotcha is this part of the Web Audio specification:&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;(exponentialRampToValueAtTime) Schedules an exponential continuous change in parameter value &lt;strong&gt;from the previous scheduled parameter value&lt;/strong&gt; to the given value.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;em&gt;From the previous scheduled parameter value&lt;/em&gt; means that you must first set the audioParam with an automation method before using the ramping function. This usually means using &lt;code class=&quot;highlighter-rouge&quot;&gt;setValueAtTime()&lt;/code&gt; instead of setting the audioParam value directly (in other words, don’t do this: &lt;code class=&quot;highlighter-rouge&quot;&gt;gainNode.gain.value = someValue&lt;/code&gt;).&lt;/p&gt;
-
-&lt;p&gt;Another gotcha also described in the spec:&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;It is an error if either V0 or V1 is not strictly positive. This also implies &lt;strong&gt;an exponential ramp to 0 is not possible.&lt;/strong&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;So we must choose a tiny value, but not zero. As mentioned earlier, we can’t ramp to zero. Also, this time we will use 30 milliseconds as the time for the ramp to occur (this is the total transition time, not the decay time used in &lt;code class=&quot;highlighter-rouge&quot;&gt;setTargetAtTime&lt;/code&gt;).&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot; data-lang=&quot;javascript&quot;&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;context&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;AudioContext&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;oscillator&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;createOscillator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;gainNode&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;createGain&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-
-&lt;span class=&quot;nx&quot;&gt;oscillator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;gainNode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;nx&quot;&gt;gainNode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;destination&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;nx&quot;&gt;oscillator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-
-&lt;span class=&quot;nx&quot;&gt;stopButton&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;addEventListener&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'click'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;// Important! Setting a scheduled parameter value&lt;/span&gt;
-    &lt;span class=&quot;nx&quot;&gt;gainNode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;gain&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;setValueAtTime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;gainNode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;gain&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;currentTime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-    &lt;span class=&quot;nx&quot;&gt;gainNode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;gain&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;exponentialRampToValueAtTime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.0001&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;currentTime&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.03&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;&lt;button class=&quot;button stop-button&quot; id=&quot;3-stop-button&quot;&gt;&lt;/button&gt;
-&lt;button class=&quot;button play-button&quot; id=&quot;3-play-button&quot;&gt;&lt;/button&gt;
-&lt;script&gt;
-	var gainNode;
-	var thirdIsPlaying;
-	(function() {
-		document.getElementById('3-play-button').addEventListener('click', function() {
-			if(thirdIsPlaying) return;
-			gainNode = context.createGain();
-			oscillator = context.createOscillator();
-			oscillator.connect(gainNode);
-			gainNode.connect(context.destination);
-			oscillator.start();
-			thirdIsPlaying = true;
-		}, false);
-		document.getElementById('3-stop-button').addEventListener('click', function() {
-			if (!thirdIsPlaying) return;
-			gainNode.gain.setValueAtTime(gainNode.gain.value, context.currentTime);
-			gainNode.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.03);
-			setTimeout(function() {
-				oscillator.stop();
-				thirdIsPlaying = false;
-			}, 30);
-		}, false);
-	})();
-&lt;/script&gt;&lt;/p&gt;
-
-&lt;p&gt;Also works, we’ve gotten rid of the click.&lt;/p&gt;
-
-&lt;h2 id=&quot;more-info&quot;&gt;More info&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://www.audiocheck.net/soundtests_nonlinear.php&quot;&gt;The non-linearities of the human ear&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://www.w3.org/TR/webaudio/#AudioParam&quot;&gt;The AudioParam interface&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/API/AudioParam/setTargetAtTime&quot;&gt;Mozilla’s documentation for setTargetAtTime&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/API/AudioParam/exponentialRampToValueAtTime&quot;&gt;Mozilla’s documentation for exponentialRampToValueAtTime&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;</content>
-
-
-
-
-
-
+      
+      
+      
+      
+      
 
       <author>
-          <name></name>
-
-
+          <name>Özgün ÖZ</name>
+        
+        
       </author>
 
+      
 
+      
+        <category term="development" />
+      
+        <category term="java" />
+      
 
+      
+        <summary type="html">Deep dive into maven’s dependency management and classloader system to help the development of plugins</summary>
+      
 
-        <category term="Web audio" />
-
-        <category term="JS" />
-
-
-
-        <summary type="html">While playing around with a Web Audio demo, I noticed a clicking sound every time a I stopped an oscillator. Is there a way to avoid it?</summary>
-
-
-
-
+      
+      
     </entry>
-
+  
 </feed>
