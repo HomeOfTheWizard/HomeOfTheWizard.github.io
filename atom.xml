@@ -39,7 +39,8 @@
       <item>
         <title>Clickhouse 101 - Data Structures and internals</title>
         
-          <description>&lt;p&gt;First article of the clickhouse 101 series. Let’s deep dive to the underlying data structures and internal mechanisms of clickhouse&lt;/p&gt;
+          <description>&lt;p&gt;First article of the clickhouse 101 series. Lets deep dive into the underlying data structures and internal mechanisms of clickhouse.&lt;/p&gt;
+
 </description>
         
         <pubDate>Wed, 30 Aug 2023 12:18:00 +0200</pubDate>

@@ -4,7 +4,7 @@
   <generator uri="https://jekyllrb.com/" version="3.9.3">Jekyll</generator>
   <link href="/tag/java/feed.xml" rel="self" type="application/atom+xml" />
   <link href="/" rel="alternate" type="text/html" />
-  <updated>2023-09-29T18:20:07+02:00</updated>
+  <updated>2023-11-02T18:07:22+01:00</updated>
   <id>/tag/java/feed.xml</id>
 
   
@@ -105,13 +105,13 @@ We will cover all those in details, and have a resumé of differences at the end
     &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
 &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;Now when you package your application as a jar, and you run it, you can pass arguments like so.&lt;/p&gt;
+&lt;p&gt;Now, when you package your application as a jar, and you run it, you can pass arguments like so:&lt;/p&gt;
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;java &lt;span class=&quot;nt&quot;&gt;-jar&lt;/span&gt; MyApplication.jar paramStr1 paramStr2&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;The arguments you pass after the jar file will be given to your main method as String parameters. &lt;br /&gt;
-If you want to change the type of the argument, you need to parse of cast the String object.&lt;br /&gt;
-Note that since we are talking about running our application in command line, only String parameters makes sense in that context.&lt;/p&gt;
+If you want to change the type of the argument, you need to parse or cast the String object.&lt;br /&gt;
+Since we are talking about running our application in command line, only String parameters makes sense in that context.&lt;/p&gt;
 
 &lt;h3&gt;2. JVM arguments&lt;/h3&gt;
 &lt;p&gt;When we execute a java program from the command line, using the &lt;code&gt;java&lt;/code&gt; executable from the JRE lib, we can pass multiple &lt;em&gt;Options&lt;/em&gt; to the JVM. &lt;br /&gt;
@@ -144,14 +144,14 @@ System Properties, like all &lt;a href=&quot;https://docs.oracle.com/en/java/jav
 They are variables defined on the OS level and are available to all processes (unless we define availability constraints on them).
 They are available in all Linux based systems and Windows (with subtle differences). You can this &lt;a href=&quot;https://en.wikipedia.org/wiki/Environment_variable&quot;&gt;wiki page&lt;/a&gt; or this &lt;a href=&quot;https://www.twilio.com/blog/how-to-set-environment-variables.html&quot;&gt;blog post&lt;/a&gt; how to set them.&lt;/p&gt;
 
-&lt;p&gt;To access and use them in java applications like so&lt;/p&gt;
+&lt;p&gt;We can access and use them in java applications like so:&lt;/p&gt;
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;envVars&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getenv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
 &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;shell&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;envVars&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;SHELL&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
 &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;The current Shell type is: &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;shell&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
 &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;The current Operating System is: &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getenv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;OS&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;&lt;em&gt;Keep in mind that different platforms operate in different ways, e.g., on UNIX, Linux, and macOS, environment variables are case-sensitive, whereas on Microsoft Windows they are not.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Keep in mind that different platforms operate in different ways. E.g., on UNIX, Linux, and macOS, environment variables are case-sensitive, whereas on Microsoft Windows they are not.&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;em&gt;In a java application, we can use environment variables available to our JVM process. But Java does not have a standard way to modify its environment. This is a decision taken to make the language and application portable. and its design isolated from its execution environment.&lt;/em&gt;&lt;/p&gt;
 
@@ -213,7 +213,7 @@ myApp.myAppProperty&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;SomeValue&lt;/c
 &lt;span class=&quot;nt&quot;&gt;&amp;lt;/project&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;And again like the above spring properties, maven properties can as well be sourced from the basic java configuration parameters like JVM arguments, system properties and environment variables.&lt;br /&gt;
-Once defined, you can use them with the below syntax.&lt;/p&gt;
+Once defined (like already explained above), you can use them with the below syntax.&lt;/p&gt;
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;properties&amp;gt;&lt;/span&gt;
     &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- environment variable --&amp;gt;&lt;/span&gt;
@@ -252,11 +252,11 @@ Once defined, you can use them with the below syntax.&lt;/p&gt;
 &lt;p&gt;Now lets get back to the focus element of this post. The credentials in our configuration, aka. secrets.&lt;/p&gt;
 
 &lt;p&gt;There are different methods to give secret values as parameters to an application.
-The most basic and old way, is to have the credentials stored in a configuration file only a server we consider secure, and we limit all access to it. Like the production server.
+The most basic and old way, is to have the credentials stored in a configuration file, located only on a server we consider secure, and we limit all access to it. Like the production server.
 For applications that run on bare metal or VMs, this is most often the chosen method.&lt;/p&gt;
 
 &lt;p&gt;Just to give a glimpse of some best practices used today without diving into too much details since it is not the subject of this blog post,
-If you are using deployment tools like ansible, you can profit from features like &lt;a href=&quot;https://docs.ansible.com/ansible/latest/vault_guide&quot;&gt;Ansible Vault&lt;/a&gt;.&lt;/p&gt;
+if you are using deployment tools like ansible, you can profit from features like &lt;a href=&quot;https://docs.ansible.com/ansible/latest/vault_guide&quot;&gt;Ansible Vault&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;../assets/images/hashicorp_ansible_jenkins_vm.png&quot; /&gt;&lt;/p&gt;
 
@@ -272,20 +272,20 @@ Most CI tools, like jenkins have &lt;a href=&quot;https://plugins.jenkins.io/has
             &lt;path d=&quot;M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z&quot;/&gt;
         &lt;/svg&gt;--&gt; 
         Warning:
-        &lt;em&gt;The most secure way to manage secrets is not to persist them at all apart anywhere we consider secure.
-        Duplicating the places where you persist the secret widens the attack surface and increase the risk of leak of the secret.&lt;/em&gt;
+        &lt;em&gt;The most secure way to manage secrets is to not persist them at all anywhere apart we consider secure.
+        Also, duplicating the places where you persist the secret widens the attack surface and increase the risk of leak of the secret.&lt;/em&gt;
     &lt;/div&gt;
 &lt;/div&gt;
 
 &lt;h3&gt; Secrets accessible to the JVM from Environment Variables &lt;/h3&gt;
-&lt;p&gt;Application execution environments are considered not secure since it is a place we do regular changes. Lots of ins and outs, difficult to track and secure.
+&lt;p&gt;Application execution environments are considered as not secure since it is a place we do regular changes. Lots of ins and outs, difficult to track and secure.
 This is why key management applications, like HashiCorp Vault has come into being. Their only purpose is to store your secrets.&lt;/p&gt;
 
 &lt;p&gt;Execution environments like containers have the advantage of being ephemeral which in turns makes the fact of having the secrets accessible on the execution environment more secure. 
-Making them accessible via environment variables instead of a config file persisted on the FS is considered relatively more secure. 
+Making them accessible via environment variables, instead of a config file persisted on the FS, is considered relatively more secure. 
 There are still some concerns about this approach in general ( &lt;a href=&quot;https://www.cloudtruth.com/blog/the-pitfalls-of-using-environment-variables-for-config-and-secrets&quot;&gt;one&lt;/a&gt; or &lt;a href=&quot;https://www.trendmicro.com/en_za/research/22/h/analyzing-hidden-danger-of-environment-variables-for-keeping-secrets.html&quot;&gt;two&lt;/a&gt; among other tones of discussion on platforms like stackexchange and stackoverflow, of blog posts are available on the net)
 but most known Container Execution Environment Providers like Docker and Kubernetes has components (&lt;a href=&quot;https://kubernetes.io/docs/concepts/configuration/secret/&quot;&gt;etcd&lt;/a&gt; for K8s) that are considered relatively secure to store the secrets for you.
-Kubernetes has even a HashiCorp Vault &lt;a href=&quot;https://www.vaultproject.io/use-cases/kubernetes&quot;&gt;plugin&lt;/a&gt; that allows fetching the secrets from Vault and injecting into the pods, instead of storing them in etcd.&lt;/p&gt;
+Kubernetes has even a HashiCorp Vault &lt;a href=&quot;https://www.vaultproject.io/use-cases/kubernetes&quot;&gt;plugin&lt;/a&gt; that allows fetching the secrets from Vault and injecting into the pods, instead of storing them in own DB (etcd).&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;../assets/images/hashicorp_jenkins_kubernetes.png&quot; /&gt;&lt;/p&gt;
 
@@ -296,12 +296,12 @@ The only thing to manage in the execution environment is the credentials to acce
 &lt;p&gt;If we compare the above methods:&lt;/p&gt;
 &lt;ol&gt;
   &lt;li&gt;The first approach with bare metal VMs force us to handle secrets manually, while the second automates the injection of the secrets to the application runtime environment.&lt;/li&gt;
-  &lt;li&gt;But the second still force us to administrate the access to the vault from the runtime environments of our application.&lt;br /&gt;
-For example we have to use specific plugins/tools/agents for each environment to access to the Vault and fetch secrets.&lt;/li&gt;
+  &lt;li&gt;But the second still forces us to administrate the access to the vault from the runtime environments of our application.&lt;br /&gt;
+For example we have to use specific plugins/tools/agents to each environment to access to the Vault and fetch secrets.&lt;/li&gt;
 &lt;/ol&gt;
 
 &lt;p&gt;Frameworks like &lt;a href=&quot;https://cloud.spring.io/spring-cloud-vault/reference/html/&quot;&gt;spring-cloud-vault&lt;/a&gt; or tools like &lt;a href=&quot;https://homeofthewizard.github.io/vault-maven-plugin/&quot;&gt;maven-vault-plugin&lt;/a&gt; allows the JVM to fetch the secrets directly from the HashiCorp Vault.&lt;br /&gt;
-They are pure Java solutions so you do not have to install anything specific to the execution environment, so can be used even in development environments.&lt;br /&gt;
+They are pure Java solutions, so you do not have to install anything specific to the execution environment, so can be used even in development environments.&lt;br /&gt;
 Plus your secrets are not persisted anywhere, but exists only in memory of your application.&lt;/p&gt;
 
 &lt;h1&gt; Appendix: References &lt;/h1&gt;

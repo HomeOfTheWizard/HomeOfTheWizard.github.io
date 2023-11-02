@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.3">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2023-09-29T18:20:07+02:00</updated><id>/feed.xml</id><title type="html">Özgün ÖZ</title><subtitle>Fullstack Developer, Msc. Computer Engineer</subtitle><entry><title type="html">How to handle Secrets in Java</title><link href="/secrets-in-java" rel="alternate" type="text/html" title="How to handle Secrets in Java" /><published>2023-08-30T12:18:00+02:00</published><updated>2023-08-30T12:18:00+02:00</updated><id>/secrets-in-java</id><content type="html" xml:base="/secrets-in-java"><![CDATA[<p>This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.3">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2023-11-02T18:07:22+01:00</updated><id>/feed.xml</id><title type="html">Özgün ÖZ</title><subtitle>Fullstack Developer, Msc. Computer Engineer</subtitle><entry><title type="html">How to handle Secrets in Java</title><link href="/secrets-in-java" rel="alternate" type="text/html" title="How to handle Secrets in Java" /><published>2023-08-30T12:18:00+02:00</published><updated>2023-08-30T12:18:00+02:00</updated><id>/secrets-in-java</id><content type="html" xml:base="/secrets-in-java"><![CDATA[<p>This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.</p>
 
 <p>All modern production applications have some parameters/configurations to allow maximum flexibility of its execution. 
 There are different ways to manage those parameters, as there are different type of parameters, 
@@ -30,13 +30,13 @@ We will cover all those in details, and have a resumé of differences at the end
     <span class="o">}</span>
 <span class="o">}</span></code></pre></figure>
 
-<p>Now when you package your application as a jar, and you run it, you can pass arguments like so.</p>
+<p>Now, when you package your application as a jar, and you run it, you can pass arguments like so:</p>
 
 <figure class="highlight"><pre><code class="language-shell" data-lang="shell">java <span class="nt">-jar</span> MyApplication.jar paramStr1 paramStr2</code></pre></figure>
 
 <p>The arguments you pass after the jar file will be given to your main method as String parameters. <br />
-If you want to change the type of the argument, you need to parse of cast the String object.<br />
-Note that since we are talking about running our application in command line, only String parameters makes sense in that context.</p>
+If you want to change the type of the argument, you need to parse or cast the String object.<br />
+Since we are talking about running our application in command line, only String parameters makes sense in that context.</p>
 
 <h3>2. JVM arguments</h3>
 <p>When we execute a java program from the command line, using the <code>java</code> executable from the JRE lib, we can pass multiple <em>Options</em> to the JVM. <br />
@@ -69,14 +69,14 @@ System Properties, like all <a href="https://docs.oracle.com/en/java/javase/17/d
 They are variables defined on the OS level and are available to all processes (unless we define availability constraints on them).
 They are available in all Linux based systems and Windows (with subtle differences). You can this <a href="https://en.wikipedia.org/wiki/Environment_variable">wiki page</a> or this <a href="https://www.twilio.com/blog/how-to-set-environment-variables.html">blog post</a> how to set them.</p>
 
-<p>To access and use them in java applications like so</p>
+<p>We can access and use them in java applications like so:</p>
 
 <figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kt">var</span> <span class="n">envVars</span> <span class="o">=</span> <span class="nc">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">();</span>
 <span class="kt">var</span> <span class="n">shell</span> <span class="o">=</span> <span class="n">envVars</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">"SHELL"</span><span class="o">);</span>
 <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"The current Shell type is: "</span> <span class="o">+</span> <span class="n">shell</span><span class="o">);</span>
 <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"The current Operating System is: "</span> <span class="o">+</span> <span class="nc">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">(</span><span class="s">"OS"</span><span class="o">));</span></code></pre></figure>
 
-<p><em>Keep in mind that different platforms operate in different ways, e.g., on UNIX, Linux, and macOS, environment variables are case-sensitive, whereas on Microsoft Windows they are not.</em></p>
+<p><em>Keep in mind that different platforms operate in different ways. E.g., on UNIX, Linux, and macOS, environment variables are case-sensitive, whereas on Microsoft Windows they are not.</em></p>
 
 <p><em>In a java application, we can use environment variables available to our JVM process. But Java does not have a standard way to modify its environment. This is a decision taken to make the language and application portable. and its design isolated from its execution environment.</em></p>
 
@@ -138,7 +138,7 @@ myApp.myAppProperty<span class="o">=</span>SomeValue</code></pre></figure>
 <span class="nt">&lt;/project&gt;</span></code></pre></figure>
 
 <p>And again like the above spring properties, maven properties can as well be sourced from the basic java configuration parameters like JVM arguments, system properties and environment variables.<br />
-Once defined, you can use them with the below syntax.</p>
+Once defined (like already explained above), you can use them with the below syntax.</p>
 
 <figure class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;properties&gt;</span>
     <span class="c">&lt;!-- environment variable --&gt;</span>
@@ -177,11 +177,11 @@ Once defined, you can use them with the below syntax.</p>
 <p>Now lets get back to the focus element of this post. The credentials in our configuration, aka. secrets.</p>
 
 <p>There are different methods to give secret values as parameters to an application.
-The most basic and old way, is to have the credentials stored in a configuration file only a server we consider secure, and we limit all access to it. Like the production server.
+The most basic and old way, is to have the credentials stored in a configuration file, located only on a server we consider secure, and we limit all access to it. Like the production server.
 For applications that run on bare metal or VMs, this is most often the chosen method.</p>
 
 <p>Just to give a glimpse of some best practices used today without diving into too much details since it is not the subject of this blog post,
-If you are using deployment tools like ansible, you can profit from features like <a href="https://docs.ansible.com/ansible/latest/vault_guide">Ansible Vault</a>.</p>
+if you are using deployment tools like ansible, you can profit from features like <a href="https://docs.ansible.com/ansible/latest/vault_guide">Ansible Vault</a>.</p>
 
 <p><img src="../assets/images/hashicorp_ansible_jenkins_vm.png" /></p>
 
@@ -197,20 +197,20 @@ Most CI tools, like jenkins have <a href="https://plugins.jenkins.io/hashicorp-v
             <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
         </svg>--> 
         Warning:
-        <em>The most secure way to manage secrets is not to persist them at all apart anywhere we consider secure.
-        Duplicating the places where you persist the secret widens the attack surface and increase the risk of leak of the secret.</em>
+        <em>The most secure way to manage secrets is to not persist them at all anywhere apart we consider secure.
+        Also, duplicating the places where you persist the secret widens the attack surface and increase the risk of leak of the secret.</em>
     </div>
 </div>
 
 <h3> Secrets accessible to the JVM from Environment Variables </h3>
-<p>Application execution environments are considered not secure since it is a place we do regular changes. Lots of ins and outs, difficult to track and secure.
+<p>Application execution environments are considered as not secure since it is a place we do regular changes. Lots of ins and outs, difficult to track and secure.
 This is why key management applications, like HashiCorp Vault has come into being. Their only purpose is to store your secrets.</p>
 
 <p>Execution environments like containers have the advantage of being ephemeral which in turns makes the fact of having the secrets accessible on the execution environment more secure. 
-Making them accessible via environment variables instead of a config file persisted on the FS is considered relatively more secure. 
+Making them accessible via environment variables, instead of a config file persisted on the FS, is considered relatively more secure. 
 There are still some concerns about this approach in general ( <a href="https://www.cloudtruth.com/blog/the-pitfalls-of-using-environment-variables-for-config-and-secrets">one</a> or <a href="https://www.trendmicro.com/en_za/research/22/h/analyzing-hidden-danger-of-environment-variables-for-keeping-secrets.html">two</a> among other tones of discussion on platforms like stackexchange and stackoverflow, of blog posts are available on the net)
 but most known Container Execution Environment Providers like Docker and Kubernetes has components (<a href="https://kubernetes.io/docs/concepts/configuration/secret/">etcd</a> for K8s) that are considered relatively secure to store the secrets for you.
-Kubernetes has even a HashiCorp Vault <a href="https://www.vaultproject.io/use-cases/kubernetes">plugin</a> that allows fetching the secrets from Vault and injecting into the pods, instead of storing them in etcd.</p>
+Kubernetes has even a HashiCorp Vault <a href="https://www.vaultproject.io/use-cases/kubernetes">plugin</a> that allows fetching the secrets from Vault and injecting into the pods, instead of storing them in own DB (etcd).</p>
 
 <p><img src="../assets/images/hashicorp_jenkins_kubernetes.png" /></p>
 
@@ -221,12 +221,12 @@ The only thing to manage in the execution environment is the credentials to acce
 <p>If we compare the above methods:</p>
 <ol>
   <li>The first approach with bare metal VMs force us to handle secrets manually, while the second automates the injection of the secrets to the application runtime environment.</li>
-  <li>But the second still force us to administrate the access to the vault from the runtime environments of our application.<br />
-For example we have to use specific plugins/tools/agents for each environment to access to the Vault and fetch secrets.</li>
+  <li>But the second still forces us to administrate the access to the vault from the runtime environments of our application.<br />
+For example we have to use specific plugins/tools/agents to each environment to access to the Vault and fetch secrets.</li>
 </ol>
 
 <p>Frameworks like <a href="https://cloud.spring.io/spring-cloud-vault/reference/html/">spring-cloud-vault</a> or tools like <a href="https://homeofthewizard.github.io/vault-maven-plugin/">maven-vault-plugin</a> allows the JVM to fetch the secrets directly from the HashiCorp Vault.<br />
-They are pure Java solutions so you do not have to install anything specific to the execution environment, so can be used even in development environments.<br />
+They are pure Java solutions, so you do not have to install anything specific to the execution environment, so can be used even in development environments.<br />
 Plus your secrets are not persisted anywhere, but exists only in memory of your application.</p>
 
 <h1> Appendix: References </h1>
@@ -240,4 +240,353 @@ https://betterdev.blog/command-line-arguments-anatomy-explained/
 https://developer.hashicorp.com/vault/docs/agent-and-proxy/agent<br />
 https://security.stackexchange.com/questions/197784/is-it-unsafe-to-use-environmental-variables-for-secret-data<br />
 https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.external-config<br />
-https://docs.spring.io/spring-framework/reference/core/beans/annotation-config/value-annotations.html</p>]]></content><author><name>Özgün ÖZ</name></author><category term="development" /><category term="java" /><summary type="html"><![CDATA[This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.]]></summary></entry><entry><title type="html">Clickhouse 101 - Data Structures and internals</title><link href="/clickhouse101_1" rel="alternate" type="text/html" title="Clickhouse 101 - Data Structures and internals" /><published>2023-08-30T12:18:00+02:00</published><updated>2023-08-30T12:18:00+02:00</updated><id>/clickhouse101_1</id><content type="html" xml:base="/clickhouse101_1"><![CDATA[<p>First article of the clickhouse 101 series. Let’s deep dive to the underlying data structures and internal mechanisms of clickhouse</p>]]></content><author><name>Özgün ÖZ</name></author><category term="development" /><category term="system" /><summary type="html"><![CDATA[First article of the clickhouse 101 series. Let’s deep dive to the underlying data structures and internal mechanisms of clickhouse]]></summary></entry><entry><title type="html">Understanding Maven core for plugin Development</title><link href="/maven_sisu" rel="alternate" type="text/html" title="Understanding Maven core for plugin Development" /><published>2023-08-30T12:18:00+02:00</published><updated>2023-08-30T12:18:00+02:00</updated><id>/maven_sisu</id><content type="html" xml:base="/maven_sisu"><![CDATA[<p>Deep dive into maven’s dependency management and classloader system to help the development of plugins</p>]]></content><author><name>Özgün ÖZ</name></author><category term="development" /><category term="java" /><summary type="html"><![CDATA[Deep dive into maven’s dependency management and classloader system to help the development of plugins]]></summary></entry></feed>
+https://docs.spring.io/spring-framework/reference/core/beans/annotation-config/value-annotations.html</p>]]></content><author><name>Özgün ÖZ</name></author><category term="development" /><category term="java" /><summary type="html"><![CDATA[This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.]]></summary></entry><entry><title type="html">Clickhouse 101 - Data Structures and internals</title><link href="/clickhouse101_1" rel="alternate" type="text/html" title="Clickhouse 101 - Data Structures and internals" /><published>2023-08-30T12:18:00+02:00</published><updated>2023-08-30T12:18:00+02:00</updated><id>/clickhouse101_1</id><content type="html" xml:base="/clickhouse101_1"><![CDATA[<p>First article of the clickhouse 101 series. Lets deep dive into the underlying data structures and internal mechanisms of clickhouse.</p>
+
+<p>Clickhouse is a DB that has a lot of potential and growing fast. Its use cases increase very rapidly as well. If you are into Data Analytics and Bigdata, you must explore it before too late.
+This series of articles are meant to give an easy introduction to clickhouse to mainly junior level engineers, but you will still find interesting content if you are more experienced. 
+The official documentation is evolving very fast. It is now complete in therms of content, and it is easier to read and browse through.<br />
+So in this series we will be covering topics necessary knowledge before you dig into the official documentation, a résumé of most important points that differ clickhouse and that need attention, lastly and most importantly give experience based and neutral recommendations.</p>
+
+<p>The series of articles will be as the following:</p>
+<ol>
+  <li><a href="/clickhouse101_1">Clickhouse DataStructures and Internals</a></li>
+  <li>Modeling your data in Clickhouse</li>
+  <li>Tradeoffs to take into account for Optimization</li>
+</ol>
+
+<p>In this first article, we will cover a bit of theory before getting into the practice. We will refresh our memory on the basics of DBs in general and the datastructures used in them. Lastly see how these structures are used in clickhouse and where does its power come from. <br />
+We will cover the following topics:</p>
+<ol>
+  <li><a href="#whatisCH" id="whatisCHref">What is Clickhouse ?</a></li>
+  <li><a href="#dsCH" id="dsCHref">Datastructures used in DBs and in Clickhouse</a></li>
+  <li><a href="#internalCH" id="internalCHref">Clickhouse internal Storage and Query Mechanisms</a></li>
+</ol>
+
+<hr />
+
+<h1 id="whatisCH"> 1. What is Clickhouse ? </h1>
+
+<p>The best answer to that comes always from the <a href="https://clickhouse.com/docs/en/intro&quot;">official documentation</a>:</p>
+<blockquote>
+ClickHouse® is a high-performance, column-oriented SQL database management system (DBMS) for online analytical processing (OLAP). It is available as both an open-source software and a cloud offering.
+</blockquote>
+
+<p>To describe its differences briefly, before we dig into the details of each of them:</p>
+<ul>
+  <li>It is a true Column Based Database</li>
+  <li>Uses data compression as a key role of its internal mechanism</li>
+  <li>Stores data on disk</li>
+  <li>Process data in parallel (CPU) and has a distributed architecture (every instance is independent)</li>
+  <li>Has SQL support (pretty much)</li>
+  <li>Real time Data inserts (async data inserts do not block queries)</li>
+</ul>
+
+<p>In order to understand it’s true power, its difference from other DBs, now let’s try to understand the first 3 points listed above and the basic concepts behind DBs in general and Clickhouse.</p>
+
+<hr />
+
+<h1 id="dsCH"> 2. Datastructures used in DBs and in Clickhouse</h1>
+<h2> 2.1. How Row and Column based Databases work</h2>
+
+<p>Lets say we have the following DB table.</p>
+
+<p><img src="../assets/images/mastering_clickhouse-DB table.png" /></p>
+
+<p>Row oriented DBs, as the name suggest, store data in rows. It is easy to write and read entire rows. But not so much if you want to read adhoc Query or do aggregation on particular columns, like analytical queries does. 
+In that case you have to bring all columns for all rows, read multiple disks potentially, then filter on columns you are interested, then only aggregate.</p>
+
+<p>For example if we want to add a new row in a Row oriented DB, we would be appending the data like below.<br />
+Reading from it would require reading all columns.</p>
+
+<p><img src="../assets/images/mastering_clickhouse-Row%20based%20DBs.png" /></p>
+
+<p>Now imagine if we just wanted to sum the ages in this table. We would have to read all data columns first to get the data we need. Also if we partition the table into multiple disks, this would mean that the computer would need to read from multiple disks to get the data necessary.</p>
+
+<p>Now lets compare the same scenario for the same data stored on a Column Oriented design.</p>
+
+<p><img src="../assets/images/mastering_clickhouse-Column%20based%20DBs.png" /></p>
+
+<p>If we want to add new data, we would have to plug each column’s data into where it belongs. If we use a single disk, we would have to bring everything in memory to do this. But it is the same with Row Oriented design. Column Oriented design has its advantage if we partition data into multiple disks.</p>
+
+<p>As we can see from above, when reading a single column for aggregating on it, we just need one disk, and the data loaded in memory is much less.</p>
+
+<p>Now, If we want to save space on our DB and secure data, we may consider data encoding and compression. So lets see what that means.</p>
+
+<h2> 2.2. Compression ? Encoding ? Encryption ? Hashing ? Indexing ? Huh ?!</h2>
+
+<p><img src="../assets/images/compression_definition.png" /></p>
+<p>As the description above says, compression is a type of encoding. So lets start with that first.</p>
+
+<h3> What is Encoding ? </h3>
+
+<p>Encoding data is a process involving changing data into a new format using a scheme. Encoding is a reversible process and data can be encoded to a new format and decoded to its original format. Encoding typically involves a publicly available scheme that is easily reversed. Encoding data is typically used to ensure the integrity and usability of data and is commonly used when data cannot be transferred in its current format between systems or applications. Encoding is not used to protect or secure data because it is easy to reverse.</p>
+
+<p><strong>An example of encoding - Base64  </strong>
+It is a method to encode byte sequences to a string. Also known as ASCII encoding, it converts binary data to ASCII strings.
+But it is not the ideal choice for security as it can easily be decoded.
+Instead, it serves as an easy way to make non HTTP compatible data types readable (image, audio ect…)
+We can attach a base64 encoded image into an xml or email.
+It provides no checksum or anything for storage value, so it is really used for transport.</p>
+
+<p><strong> Another example of encoding - UTF </strong>
+It is a method used for storage. 
+UTF Stands for “Unicode Transformation Format”. The UTF encoding standards, such as UTF-8, 16 ect., are used to convert Unicode character into numerals. <strong>Unicode</strong> is a codded character set. A set of characters and mapping between those characters and their integer codes representing them.</p>
+
+<p>Lets say we want to store the following character in our hard drive.</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">character:              汉
+unicode:                U+6C49
+unicode in binary:      01101100  01001001</code></pre></figure>
+
+<p>When we decide to store a character in our hard drive, we can simply put its binary value. When the computer reads it, it has no idea how to parse this. It is one byte 2 charcter ? or two bytes 1 character ? so we need an encoding to tell the computer how to treat it when read. This is where UTF-8 like encodings comes in.</p>
+
+<p>Binary Format of Byte Sequences in UTF-8 are like the following:</p>
+<p><img src="../assets/images/mastering_clickhouse-utf-table.png" /></p>
+
+<p>Which format from the above table we will use depends on how many bits we need to write in binary the unicode of our character (for 汉 we need 2bytes/16bits).  <br />
+So to Encode 汉 in UTF-8 we will use the 3bytes format which has 16bits free:</p>
+<p><img src="../assets/images/mastering_clickhouse-utf-encoding.png" /></p>
+
+<p>Encoding of 汉 in UTF-8   =  11100110 10110001 10001001</p>
+
+<h3> What is Encryption ? </h3>
+
+<p>Encryption is an encoding technique for a specific need, which is to allow only authorized users with a key or password to decrypt the data and reveal its original. Encryption is used when data needs to be protected so those without the decryption keys cannot access the original data. When data is sent to a website over HTTPS it is encrypted using the public key type. While encryption does involve encoding data, the two are not interchangeable terms, encryption is always used when referring to data that has been securely encoded. Encoding data is used only when talking about data that is not securely encoded.</p>
+
+<p>There are two basic types of encryption: symmetric key and public key.
+In a symmetric key, the same key is used to encrypt and decrypt data, like a password. In public key encryption, one key is used to encrypt data and a different key is used to decrypt the data.</p>
+
+<p><strong>An example of encryption is: AES 256 </strong></p>
+
+<p>AES is the Advanced Encryption Standard and is a symmetric key encryption. AES uses a 256-bit key which means there are 2^256, or 1.158x10^77, possible keys that can be used.
+Clickhouse allows, if needed, encrypting the data at rest with an AES key.</p>
+
+<h3> What is Hashing ? </h3>
+<p>Hashing is a one-way process where data is encoded, using a hash-function.
+The best definition of a hash function comes from <a href="&quot;https://en.wikipedia.org/wiki/Hash_function&quot;">wikipedia</a>:</p>
+<blockquote>
+A hash function is any function that can be used to map data of arbitrary size to fixed-size values, though there are some hash functions that support variable length output. The values returned by a hash function are called hash values, hash codes, digests, or simply hashes. The values are usually used to index a fixed-size table called a hash table. Use of a hash function to index a hash table is called hashing or scatter storage addressing.
+</blockquote>
+
+<p>As we can understand from that definition, hashing can be using to index data in Databases, which we will see in a bit. But on top of that Hashing is also commonly used to verify the integrity of data, commonly referred to as a checksum. If two pieces of identical data are hashed using the same hash function, the resulting hash will be identical. If the two pieces of data are different, the resulting hashes will be different and unique.</p>
+
+<p><strong> An example of a hash function - SHA512 </strong>
+Say Alice wants to send Bob a file and verify that Bob has the exact same file and that no changes occurred in the transferring process. Alice will email Bob the file along with a hash of the file. After Bob downloads the file, he can verify the file is identical by performing a hash function on the file and verify the resulting hash is the same as Alice provided.</p>
+
+<h3> What is Compression ? </h3>
+
+<p>Compression mechanisms seperates into two, losseless and lossy. As the names suggest, lossless types can compress/decompress data and reconstruct it without any data loss. ex: zip archives which includes tarball(tar.xz) compression for unix systems.</p>
+
+<p><strong> An example of Compression - Dictionary Encoding:</strong>
+Most primitive, yet most powerful encoding. It compresses really good, but the dictionary built is usually for a specific purpose. Otherwise too big an not optimal. A common usage is Brotli algorithm used to compress web pages.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>key</th>
+      <th>encoded value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>pizza</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>spageti</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>döner</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>An example of Compression - Bitmap Compression / Run-length Encoding:</strong>
+It is a form of losseless compression in which “runs” of data (sequences in which the same data value occurs in many consecutive data elements) are stored as a single data value and count.</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">aaaab -&gt; 4a1b</code></pre></figure>
+
+<h2> 2.3. Why Compression and Encoding is important in C-Oriented DBs ? </h2>
+<p>Now if we get back to our discussion about R-DBs and C-DBs, in columnar design we can sort column data, and compress with run-lenght encoding. Also since we encode data, each piece of data is the same number of bits long. So we can further compress, so each data piece is shown as, the number of peice of data times the number of bits each data piece has.</p>
+
+<p>When doing adHoc queries, there are different sort orders of data that would improve performance. We might want to list data ordered by date, for instance both in asc and desc order. In R-DBs, indexes can be created but data is rarely ordered with multiple sort orders. In C-DBs you can.</p>
+<p><img src="../assets/images/mastering_clickhouse-ColumnOriented-ReadStores.png" /></p>
+
+<p>These ways of storing data are called “projections”.
+There are multiple benefits beyond query performance. Having multiple copies of same data allows fault tolerance.</p>
+
+<p>The above diagram seems difficult to update, and it is. But that is why usually C-DBs have the main table called “writable store (WS)” and multiple “readable stores (RS)”.
+The WS has data ordered in order of injection. It simply appends new data to the existing one. It has a tuple mover that updates the RS with the updates to the WS.
+The RS can have multiple projections. The tuple mover navigates to the projections and append data to the proper place.</p>
+<div class="alert">
+    <div style="margin-left: 0.7em;">
+        <!--<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16">
+            <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+        </svg>--> 
+        Warning:
+        <em>This architecture requires that the partially inserted data to the RS should be ignored by the incoming adhoc queries, untill the insertion is completed</em>
+    </div>
+</div>
+
+<h3>Indexing</h3>
+<p>Now as last thing before we get to the implementations in ClickHouse, some insights on the indexing mechanisms.
+Before we see indexing in DBs, I would like to state the definition of the word <a href="https://en.wikipedia.org/wiki/Index_(publishing)">“index”</a>:</p>
+<blockquote>
+An index is a list of words or phrases ('headings') and associated pointers ('locators') to where useful material relating to that heading can be found in a document or collection of documents. Examples are an index in the back matter of a book and an index that serves as a library catalog. An index differs from a word index, or concordance, in focusing on the subject of the text rather than the exact words in a text, and it differs from a table of contents because the index is ordered by subject, regardless of whether it is early or late in the book, while the listed items in a table of contents is placed in the same order as the book.[1]
+</blockquote>
+
+<p>Now we can understand deeply its usage <a href="https://en.wikipedia.org/wiki/Database_index">in DBs</a>.</p>
+<blockquote>
+A database index is a data structure that improves the speed of data retrieval operations on a database table at the cost of additional writes and storage space to maintain the index data structure.
+</blockquote>
+
+<p>Indexes in DBs are created using the following two info:<br />
+<strong>Search key:</strong> A copy of the primary key, the values of the search key is stored in sorted order to be able to search on them easily.<br />
+<strong>Data ref:</strong> or pointer, which contains addresses of disk block where the value row of that particular key is stored.    <br />
+<em>NOTE: the pointed data itself may or may not be ordered.</em></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>key</th>
+      <th>DataRef</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>0x012F</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>0xA29E</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>0x27D2</td>
+    </tr>
+    <tr>
+      <td>…</td>
+      <td>…</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>There exists two types of index file organisations:<br />
+<strong> 1. Sequential file organisation </strong><br />
+<strong> 2. Hash file organisation </strong></p>
+
+<p>Lets illustrate how those organisations work using the following DB table. The table is spread across 2 pages that contain four rows each.<br />
+<strong>Partition ?</strong> Partitioning allows a table, index, or index-organized table to be subdivided into smaller pieces, where each piece of such a database object is called a partition. Each partition has its own name, and may optionally have its own storage characteristics. The data of partitioned tables and indexes is divided into units that can be spread across more than one filegroup in a database. The data is partitioned horizontally, so that groups of rows are mapped into individual partitions.</p>
+<p><img src="../assets/images/mastering_clickhouse-indexing-table.png" /></p>
+
+<p>We will start with Hash file, and finish with Sequential file index, cause the latest is the one used in ClickHouse.</p>
+
+<p><strong>Hash file organisation:</strong>
+Is an index that uses a hash function with search keys as parameters to generate addresses of data record.
+This index organisation calculates the direct location of data record on disk.
+Indices are based on the values being distributed uniformly across a range of buckets. The buckets to which a value is assigned are determined by the hash function.</p>
+
+<p><img src="../assets/images/mastering_clickhouse-hash-file.png" /></p>
+
+<p>As it is the case for all Hash based organisations, the data stored is scattered, non-ordered, so cannot be compressed. Lots of space is not used and wasted.</p>
+
+<p><strong>Sequential file index organisation:</strong>
+In this, the indices are based on a sorted ordering of the values. These are generally fast and a more traditional type of storing mechanism. These Ordered or Sequential file organizations might store the data in a dense or sparse format.</p>
+
+<p><img src="../assets/images/mastering_clickhouse-sequential-file.png" /></p>
+
+<p><strong>Dense index: </strong> 
+We can see that the index has an entry for every first name in the table. If we want to look up a user with the first name “Arnaud,” then we perform a binary search on the index and read the location of the data. In contrast, a sparse index only has entries for some of the table rows.</p>
+
+<p><strong>Sparse index:</strong><br />
+We can see that our sparse index only has 2 entries (one for each page). Now, if we want to find the row for “Arnaud,” we can perform a binary search on our index to find that it falls between “Anne” and “Mathieu”. After discovering those bounds, we go to the page starting with “Anne” and begin scanning for Arnaud’s row. Notice that the data is now sorted on the right side for this example. This sorting is a limitation of the sparse index. A sparse index requires ordered data; otherwise, the scanning step would be impossible.</p>
+
+<p>Dense indexes require more maintenance than sparse indexes at write-time. Since every row must have an entry, the database must maintain the index on inserts, updates, and deletes. Having an entry for every row also means that dense indexes will require more memory. The benefit of a dense index is that values can be quickly found with just a binary search. Dense indexes also do not impose any ordering requirements on the data.
+Sparse indexes require less maintenance than dense indexes at write-time since they only contain a subset of the values. This lighter maintenance burden means that inserts, updates, and deletes will be faster. Having fewer entries also means that the index will use less memory. Finding data is slower since a scan across the page typically follows the binary search. Sparse indexes are also only an option when working with ordered data.</p>
+
+<p>Now. How those structures are used in clickhouse ?</p>
+
+<hr />
+
+<h1 id="internalCH"> 3. Clickhouse Internal Storage and Query Mechanism</h1>
+
+<p>Now lets take a practical example to illustrate the power of clickhouse.<br />
+Say we have the table below, containing 8.87 million entry:</p>
+<p><img src="../assets/images/mastering_clickhouse-partitioned-table.png" /></p>
+
+<p>If we execute the query below on that table:</p>
+
+<figure class="highlight"><pre><code class="language-sql" data-lang="sql"><span class="k">SELECT</span> <span class="n">Carrier</span><span class="p">,</span>
+<span class="n">toYear</span><span class="p">(</span><span class="n">FlightDate</span><span class="p">)</span> <span class="k">as</span> <span class="nb">Year</span><span class="p">,</span>
+<span class="k">sum</span><span class="p">(</span><span class="n">canceled</span><span class="p">)</span><span class="o">/</span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span> <span class="k">as</span> <span class="n">canceled</span>
+<span class="k">FROM</span> <span class="n">flights_ontime</span>
+<span class="k">WHERE</span> <span class="nb">Year</span> <span class="o">=</span> <span class="mi">2017</span>
+<span class="k">GROUP</span> <span class="k">BY</span> <span class="n">Carrier</span><span class="p">,</span> <span class="nb">Year</span>
+<span class="k">HAVING</span> <span class="n">cancelled</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">.</span><span class="mi">0</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="n">Carrier</span></code></pre></figure>
+
+<p>If we:</p>
+<ul>
+  <li>read every row 				=&gt; 	59GB  	%100</li>
+  <li>read only 3 columns 		=&gt;	1,7GB	%3</li>
+  <li>read 3 cols compressed		=&gt;	21MB	%0,035</li>
+  <li>read 3 cols comp 8 threads	=&gt;	2,6MB	%0,0044</li>
+</ul>
+
+<p>In traditional relational database management systems, the primary index would contain one entry per table row. For our data set this would result in the primary index - often a B(+)-Tree data structure - containing 8.87 million entries. Such an index allows the fast location of specific rows, resulting in high efficiency for lookup queries and point updates. Searching an entry in a B(+)-Tree data structure has average time complexity of O(log2 n). For a table of 8.87 million rows, this means 23 steps are required to locate any index entry. This capability comes at a cost: additional disk and memory overheads and higher insertion costs when adding new rows to the table and entries to the index (and also sometimes rebalancing of the B-Tree).</p>
+
+<p>Considering the challenges associated with B-Tree indexes, table engines in ClickHouse utilise a different approach. The ClickHouse MergeTree Engine Family has been designed and optimized to handle massive data volumes. These tables are designed to receive millions of row inserts per second and store very large (100s of Petabytes) volumes of data. Data is quickly written to a table part by part, with rules applied for merging the parts in the background. In ClickHouse each part has its own primary index. When parts are merged, then the merged part’s primary indexes are also merged. At the very large scale that ClickHouse is designed for, it is paramount to be very disk and memory efficient. Therefore, instead of indexing every row, the primary index for a part has one index entry (known as a ‘<strong>mark</strong>’) per group of rows (called ‘<strong>granule</strong>’) - this technique is called sparse index.</p>
+
+<p>Sparse indexing is possible because ClickHouse is storing the rows for a part on disk ordered by the primary key column(s). Instead of directly locating single rows (like a B-Tree based index), the sparse primary index allows it to quickly (via a binary search over index entries) identify groups of rows that could possibly match the query. The located groups of potentially matching rows (granules) are then in parallel streamed into the ClickHouse engine in order to find the matches. This index design allows for the primary index to be small (it can, and must, completely fit into the main memory), whilst still significantly speeding up query execution times: especially for range queries that are typical in data analytics use cases.</p>
+
+<p><img src="../assets/images/mastering_clickhouse-partitioning.png" /></p>
+
+<p>For data processing purposes, a table’s column values are logically divided into granules. A granule is the smallest indivisible data set that is streamed into ClickHouse for data processing. This means that instead of reading individual rows, ClickHouse is always reading (in a streaming fashion and in parallel) a whole group (granule) of rows.
+The following diagram shows how the (column values of) 8.87 million rows of our table are organized into 1083 granules, as a result of the table’s DDL statement containing the setting index_granularity (set to its default value of 8192).
+The primary index is created based on the granules shown in the diagram above. This index is an uncompressed flat array file (primary.idx), containing so-called numerical index marks starting at 0.
+The diagram below shows that the index stores the primary key column values (the values marked in orange in the diagram above) for each first row for each granule. Or in other words: the primary index stores the primary key column values from each 8192nd row of the table (based on the physical row order defined by the primary key columns). For example
+the first index entry (‘mark 0’ in the diagram below) is storing the key column values of the first row of granule 0 from the diagram above,
+the second index entry (‘mark 1’ in the diagram below) is storing the key column values of the first row of granule 1 from the diagram above, and so on.</p>
+
+<p>When a query is filtering on a column that is part of a compound key and is the first key column, then ClickHouse is running the binary search algorithm over the key column’s index marks.</p>
+
+<p>As discussed above, ClickHouse is using its sparse primary index for quickly (via binary search) selecting granules that could possibly contain rows that match a query.
+This is the first stage (granule selection) of ClickHouse query execution.
+In the second stage (data reading), ClickHouse is locating the selected granules in order to stream all their rows into the ClickHouse engine in order to find the rows that are actually matching the query.</p>
+
+<p>In ClickHouse the physical locations of all granules for our table are stored in mark files. Similar to data files, there is one mark file per table column.
+We have discussed how the primary index is a flat uncompressed array file (primary.idx), containing index marks that are numbered starting at 0.
+Similarly, a mark file is also a flat uncompressed array file (*.mrk) containing marks that are numbered starting at 0.
+Once ClickHouse has identified and selected the index mark for a granule that can possibly contain matching rows for a query, a positional array lookup can be performed in the mark files in order to obtain the physical locations of the granule.</p>
+
+<p>Each mark file entry for a specific column is storing two locations in the form of offsets:
+The first offset (‘block_offset’ in the diagram above) is locating the block in the compressed column data file that contains the compressed version of the selected granule. This compressed block potentially contains a few compressed granules. The located compressed file block is uncompressed into the main memory on read.
+The second offset (‘granule_offset’ in the diagram above) from the mark-file provides the location of the granule within the uncompressed block data.
+Because compressed blocks contains data for multiple granules.</p>
+
+<p>All the 8192 rows belonging to the located uncompressed granule are then streamed into ClickHouse for further processing.</p>
+
+<p><img src="../assets/images/mastering_clickhouse-parts-internals.png" /></p>
+
+<h3>Why MARK Files ?</h3>
+<p>Why does the primary index not directly contain the physical locations of the granules that are corresponding to index marks?<br />
+Because at that very large scale that ClickHouse is designed for, it is important to be very disk and memory efficient.<br />
+The primary index file needs to fit into the main memory.<br />
+For our example query, ClickHouse used the primary index and selected a single granule that can possibly contain rows matching our query. Only for that one granule does ClickHouse then need the physical locations in order to stream the corresponding rows for further processing.<br />
+Furthermore, this offset information is only needed for the UserID and URL columns.<br />
+Offset information is not needed for columns that are not used in the query e.g. the EventTime.<br />
+For our sample query, ClickHouse needs only the two physical location offsets for granule 176 in the UserID data file (UserID.bin) and the two physical location offsets for granule 176 in the URL data file (URL.bin).<br />
+The indirection provided by mark files avoids storing, directly within the primary index, entries for the physical locations of all 1083 granules for all three columns: thus avoiding having unnecessary (potentially unused) data in main memory.</p>
+
+<hr />
+
+<h1>Appendix: References</h1>
+
+<p>https://wikipedia.com<br />
+https://stackoverflow.com/questions/643694/what-is-the-difference-between-utf-8-and-unicode
+https://dataschool.com/data-modeling-101/row-vs-column-oriented-databases/<br />
+https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses/<br />
+https://clickhouse.com/docs/en/optimize/sparse-primary-indexes#an-index-design-for-massive-data-scales</p>]]></content><author><name>Özgün ÖZ</name></author><category term="development" /><category term="system" /><summary type="html"><![CDATA[First article of the clickhouse 101 series. Lets deep dive into the underlying data structures and internal mechanisms of clickhouse.]]></summary></entry><entry><title type="html">Understanding Maven core for plugin Development</title><link href="/maven_sisu" rel="alternate" type="text/html" title="Understanding Maven core for plugin Development" /><published>2023-08-30T12:18:00+02:00</published><updated>2023-08-30T12:18:00+02:00</updated><id>/maven_sisu</id><content type="html" xml:base="/maven_sisu"><![CDATA[<p>Deep dive into maven’s dependency management and classloader system to help the development of plugins</p>]]></content><author><name>Özgün ÖZ</name></author><category term="development" /><category term="java" /><summary type="html"><![CDATA[Deep dive into maven’s dependency management and classloader system to help the development of plugins]]></summary></entry></feed>
