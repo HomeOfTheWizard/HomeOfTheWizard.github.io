@@ -4,7 +4,7 @@
   <generator uri="https://jekyllrb.com/" version="3.9.3">Jekyll</generator>
   <link href="/tag/system/feed.xml" rel="self" type="application/atom+xml" />
   <link href="/" rel="alternate" type="text/html" />
-  <updated>2023-11-02T18:07:22+01:00</updated>
+  <updated>2023-11-04T15:33:05+01:00</updated>
   <id>/tag/system/feed.xml</id>
 
   
@@ -41,7 +41,7 @@
 
 &lt;p&gt;Clickhouse is a DB that has a lot of potential and growing fast. Its use cases increase very rapidly as well. If you are into Data Analytics and Bigdata, you must explore it before too late.
 This series of articles are meant to give an easy introduction to clickhouse to mainly junior level engineers, but you will still find interesting content if you are more experienced. 
-The official documentation is evolving very fast. It is now complete in therms of content, and it is easier to read and browse through.&lt;br /&gt;
+The official documentation is evolving very fast. It is now complete in terms of content, and it is easier to read and browse through.&lt;br /&gt;
 So in this series we will be covering topics necessary knowledge before you dig into the official documentation, a résumé of most important points that differ clickhouse and that need attention, lastly and most importantly give experience based and neutral recommendations.&lt;/p&gt;
 
 &lt;p&gt;The series of articles will be as the following:&lt;/p&gt;
@@ -68,7 +68,7 @@ We will cover the following topics:&lt;/p&gt;
 ClickHouse® is a high-performance, column-oriented SQL database management system (DBMS) for online analytical processing (OLAP). It is available as both an open-source software and a cloud offering.
 &lt;/blockquote&gt;
 
-&lt;p&gt;To describe its differences briefly, before we dig into the details of each of them:&lt;/p&gt;
+&lt;p&gt;To describe its differences briefly:&lt;/p&gt;
 &lt;ul&gt;
   &lt;li&gt;It is a true Column Based Database&lt;/li&gt;
   &lt;li&gt;Uses data compression as a key role of its internal mechanism&lt;/li&gt;
@@ -78,12 +78,86 @@ ClickHouse® is a high-performance, column-oriented SQL database management syst
   &lt;li&gt;Real time Data inserts (async data inserts do not block queries)&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;In order to understand it’s true power, its difference from other DBs, now let’s try to understand the first 3 points listed above and the basic concepts behind DBs in general and Clickhouse.&lt;/p&gt;
+&lt;p&gt;In order to understand it’s true power, its difference from other DBs, lets first try to understand the basic concepts behind Column Oriented DBs and OLAP queries.&lt;/p&gt;
 
 &lt;hr /&gt;
 
 &lt;h1 id=&quot;dsCH&quot;&gt; 2. Datastructures used in DBs and in Clickhouse&lt;/h1&gt;
-&lt;h2&gt; 2.1. How Row and Column based Databases work&lt;/h2&gt;
+&lt;h2&gt; 2.1 Analytical Processing (OLAP) &lt;/h2&gt;
+&lt;p&gt;Definition from &lt;a href=&quot;https://en.wikipedia.org/wiki/Online_analytical_processing&quot;&gt;wikipedia&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;OLAP (/ˈoʊlæp/), is an approach to answer multi-dimensional analytical (MDA) queries swiftly in computing.&lt;/blockquote&gt;
+&lt;p&gt;Explained simply: It requires a system where we will insert new data very frequently, and want to query adhoc slices of it in real time. But never update the inserted data.&lt;/p&gt;
+
+&lt;p&gt;If we dig further:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;It requires scanning and aggregating large amount of data.&lt;br /&gt;
+Meaning that it is I/O and compute intensive (bottleneck is usually IO).&lt;/li&gt;
+  &lt;li&gt;Choosing different adhoc slices of data.&lt;br /&gt;
+Since we have lots of attributes and huge data, cache, index, pre-aggregation have limited value.&lt;/li&gt;
+  &lt;li&gt;Needs to deliver extremely fast response.&lt;br /&gt;
+Response required in as little as 20ms (Most of the time it is the backend for real-time applications)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt; 2.2 How DBs work in general &lt;/h2&gt;
+&lt;p&gt;Before we see how Column-Oriented DBs work (like clickhouse), lets refresh our memories on some base concepts necessary to understand how DBs store data, and how they look up for them when queried.&lt;/p&gt;
+
+&lt;p&gt;Lets illustrate how those work using the following DB table.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-table.png&quot; /&gt;&lt;/p&gt;
+
+&lt;h3&gt;Partitionning&lt;/h3&gt;
+&lt;p&gt;It allows a table to be subdivided and stored into smaller pieces, where each piece of such a database object is called a partition. Each partition has its own name, and may optionally have its own storage characteristics (maybe stored on separate physical or virtual disk for example). The data of partitioned tables is divided into units that can be spread across more than one filegroup in a database. The data is partitioned horizontally, so that groups of rows are mapped into individual partitions.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-partitioning-tables.png&quot; /&gt;&lt;/p&gt;
+
+&lt;h3&gt;Indexing&lt;/h3&gt;
+&lt;p&gt;I would like to state first the definition of the word &lt;a href=&quot;https://en.wikipedia.org/wiki/Index_(publishing)&quot;&gt;“index”&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+An index is a list of words or phrases (&apos;headings&apos;) and associated pointers (&apos;locators&apos;) to where useful material relating to that heading can be found in a document or collection of documents. Examples are an index in the back matter of a book and an index that serves as a library catalog. An index differs from a word index, or concordance, in focusing on the subject of the text rather than the exact words in a text, and it differs from a table of contents because the index is ordered by subject, regardless of whether it is early or late in the book, while the listed items in a table of contents is placed in the same order as the book.[1]
+&lt;/blockquote&gt;
+
+&lt;p&gt;Now we can understand its usage &lt;a href=&quot;https://en.wikipedia.org/wiki/Database_index&quot;&gt;in DBs&lt;/a&gt;.&lt;/p&gt;
+&lt;blockquote&gt;
+A database index is a data structure that improves the speed of data retrieval operations on a database table at the cost of additional writes and storage space to maintain the index data structure.
+&lt;/blockquote&gt;
+
+&lt;p&gt;Indexes in DBs are created using the following two info:&lt;br /&gt;
+&lt;strong&gt;Search key:&lt;/strong&gt; A copy of the primary key, the values of the search key is stored in sorted order to be able to search on them easily.&lt;br /&gt;
+&lt;strong&gt;Data ref:&lt;/strong&gt; or pointer, which contains addresses of disk block where the value row of that particular key is stored.    &lt;br /&gt;
+&lt;em&gt;NOTE: the pointed data itself may or may not be ordered.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-indexing-tables.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;There exists two types of index file organisations:&lt;br /&gt;
+&lt;strong&gt; 1. Sequential file organisation &lt;/strong&gt;&lt;br /&gt;
+&lt;strong&gt; 2. Hash file organisation &lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Lets illustrate how those organisations work using our DB table.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-indexing-table.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We will start with Hash file, and finish with Sequential file index, cause the latest is the one used in ClickHouse.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Hash file organisation:&lt;/strong&gt;
+Is an index that uses a hash function with search keys as parameters to generate the direct addresses of data record on disk.
+We give the definition of a hash function later in this article.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-hash-file.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;As it is the case for all Hash based organisations, the data stored is scattered, non-ordered, so cannot be compressed. Lots of space is not used and wasted.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Sequential file index organisation:&lt;/strong&gt;
+In this, the indices are based on a sorted ordering of the values. These are generally fast and a more traditional type of storing mechanism. These Ordered or Sequential file organizations might store the data in a dense or sparse format.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-sequential-file.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Dense index: &lt;/strong&gt;
+We can see that the index has an entry for every first name in the table. If we want to look up a user with the first name “Arnaud,” then we perform a binary search on the index and read the location of the data. In contrast, a sparse index only has entries for some of the table rows.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Sparse index:&lt;/strong&gt;&lt;br /&gt;
+We can see that our sparse index only has 2 entries (one for each page). Now, if we want to find the row for “Arnaud,” we can perform a binary search on our index to find that it falls between “Anne” and “Mathieu”. After discovering those bounds, we go to the page starting with “Anne” and begin scanning for Arnaud’s row. Notice that the data is now sorted on the right side for this example. This sorting is a limitation of the sparse index. A sparse index requires ordered data; otherwise, the scanning step would be impossible.&lt;/p&gt;
+
+&lt;p&gt;Dense indexes require more maintenance than sparse indexes at write-time. Since every row must have an entry, the database must maintain the index on inserts, updates, and deletes. Having an entry for every row also means that dense indexes will require more memory. The benefit of a dense index is that values can be quickly found with just a binary search. Dense indexes also do not impose any ordering requirements on the data.
+Sparse indexes require less maintenance than dense indexes at write-time since they only contain a subset of the values. This lighter maintenance burden means that inserts, updates, and deletes will be faster. Having fewer entries also means that the index will use less memory. Finding data is slower since a scan across the page typically follows the binary search. Sparse indexes are also only an option when working with ordered data.&lt;/p&gt;
+
+&lt;h2&gt; 2.3. How Row and Column based Databases work&lt;/h2&gt;
 
 &lt;p&gt;Lets say we have the following DB table.&lt;/p&gt;
 
@@ -109,9 +183,12 @@ Reading from it would require reading all columns.&lt;/p&gt;
 
 &lt;p&gt;Now, If we want to save space on our DB and secure data, we may consider data encoding and compression. So lets see what that means.&lt;/p&gt;
 
-&lt;h2&gt; 2.2. Compression ? Encoding ? Encryption ? Hashing ? Indexing ? Huh ?!&lt;/h2&gt;
+&lt;h2&gt; 2.4. Compression ? Encoding ? Encryption ? Hashing ? Indexing ? Huh ?!&lt;/h2&gt;
 
-&lt;p&gt;&lt;img src=&quot;../assets/images/compression_definition.png&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;Compression from &lt;a href=&quot;https://en.wikipedia.org/wiki/Data_compression&quot;&gt;wikipedia&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+In information theory, data compression, source coding, or bit-rate reduction is the process of encoding information using fewer bits than the original representation. Any particular compression is either lossy or lossless. Lossless compression reduces bits by identifying and eliminating statistical redundancy. No information is lost in lossless compression. Lossy compression reduces bits by removing unnecessary or less important information.[3] Typically, a device that performs data compression is referred to as an encoder, and one that performs the reversal of the process (decompression) as a decoder.
+&lt;/blockquote&gt;
 &lt;p&gt;As the description above says, compression is a type of encoding. So lets start with that first.&lt;/p&gt;
 
 &lt;h3&gt; What is Encoding ? &lt;/h3&gt;
@@ -148,27 +225,24 @@ So to Encode 汉 in UTF-8 we will use the 3bytes format which has 16bits free:&l
 
 &lt;h3&gt; What is Encryption ? &lt;/h3&gt;
 
-&lt;p&gt;Encryption is an encoding technique for a specific need, which is to allow only authorized users with a key or password to decrypt the data and reveal its original. Encryption is used when data needs to be protected so those without the decryption keys cannot access the original data. When data is sent to a website over HTTPS it is encrypted using the public key type. While encryption does involve encoding data, the two are not interchangeable terms, encryption is always used when referring to data that has been securely encoded. Encoding data is used only when talking about data that is not securely encoded.&lt;/p&gt;
+&lt;p&gt;Encryption is an encoding technique for a specific need, which is to allow only authorized users with a key or password to decrypt the data and reveal its original. Encryption is used when data needs to be protected so those without the decryption keys cannot access the original data. For example, when data is sent to a website over HTTPS it is encrypted using the public key type. While encryption does involve encoding data, the two are not interchangeable terms, encryption is always used when referring to data that has been securely encoded. Encoding data is used only when talking about data that is not securely encoded.&lt;/p&gt;
 
-&lt;p&gt;There are two basic types of encryption: symmetric key and public key.
-In a symmetric key, the same key is used to encrypt and decrypt data, like a password. In public key encryption, one key is used to encrypt data and a different key is used to decrypt the data.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;An example of encryption is: AES&lt;/strong&gt;
+AES is the Advanced Encryption Standard and is a symmetric key encryption.
+We will see, in later articles of this series that Clickhouse, if needed, allows encrypting the data at rest with an AES key.&lt;/p&gt;
 
-&lt;p&gt;&lt;strong&gt;An example of encryption is: AES 256 &lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;AES is the Advanced Encryption Standard and is a symmetric key encryption. AES uses a 256-bit key which means there are 2^256, or 1.158x10^77, possible keys that can be used.
-Clickhouse allows, if needed, encrypting the data at rest with an AES key.&lt;/p&gt;
+&lt;p&gt;If you would like to dig deeper into encryption, the subject is very wast and is a scientific field apart (Cryptography), but I could suggest &lt;a href=&quot;https://en.wikipedia.org/wiki/Encryption&quot;&gt;this article&lt;/a&gt; as a good beginning.&lt;/p&gt;
 
 &lt;h3&gt; What is Hashing ? &lt;/h3&gt;
-&lt;p&gt;Hashing is a one-way process where data is encoded, using a hash-function.
+&lt;p&gt;Hashing is a one-way process where data is “encoded”, using a hash-function.
 The best definition of a hash function comes from &lt;a href=&quot;&amp;quot;https://en.wikipedia.org/wiki/Hash_function&amp;quot;&quot;&gt;wikipedia&lt;/a&gt;:&lt;/p&gt;
 &lt;blockquote&gt;
 A hash function is any function that can be used to map data of arbitrary size to fixed-size values, though there are some hash functions that support variable length output. The values returned by a hash function are called hash values, hash codes, digests, or simply hashes. The values are usually used to index a fixed-size table called a hash table. Use of a hash function to index a hash table is called hashing or scatter storage addressing.
 &lt;/blockquote&gt;
+&lt;p&gt;As we can understand from that definition, hashing can be using to index data in Databases, which we already saw above.&lt;/p&gt;
 
-&lt;p&gt;As we can understand from that definition, hashing can be using to index data in Databases, which we will see in a bit. But on top of that Hashing is also commonly used to verify the integrity of data, commonly referred to as a checksum. If two pieces of identical data are hashed using the same hash function, the resulting hash will be identical. If the two pieces of data are different, the resulting hashes will be different and unique.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt; An example of a hash function - SHA512 &lt;/strong&gt;
-Say Alice wants to send Bob a file and verify that Bob has the exact same file and that no changes occurred in the transferring process. Alice will email Bob the file along with a hash of the file. After Bob downloads the file, he can verify the file is identical by performing a hash function on the file and verify the resulting hash is the same as Alice provided.&lt;/p&gt;
+&lt;p&gt;But on top of that Hashing is also commonly used to verify the integrity of data, commonly referred to as a checksum, and it is the recommended data transformation technique in authentication processes for computer systems and applications.
+If you are interested to those other usages outside our scope, a good article can be found &lt;a href=&quot;https://www.packetlabs.net/posts/encryption-encoding-and-hashing/#:~:text=In%20addition%20to%20verifying%20the,of%20the%20%E2%80%9Csalted%20password%E2%80%9D&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h3&gt; What is Compression ? &lt;/h3&gt;
 
@@ -187,7 +261,7 @@ Most primitive, yet most powerful encoding. It compresses really good, but the d
   &lt;tbody&gt;
     &lt;tr&gt;
       &lt;td&gt;1&lt;/td&gt;
-      &lt;td&gt;pizza&lt;/td&gt;
+      &lt;td&gt;fondue&lt;/td&gt;
     &lt;/tr&gt;
     &lt;tr&gt;
       &lt;td&gt;2&lt;/td&gt;
@@ -205,9 +279,7 @@ It is a form of losseless compression in which “runs” of data (sequences in 
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;aaaab -&amp;gt; 4a1b&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;h2&gt; 2.3. Why Compression and Encoding is important in C-Oriented DBs ? &lt;/h2&gt;
-&lt;p&gt;Now if we get back to our discussion about R-DBs and C-DBs, in columnar design we can sort column data, and compress with run-lenght encoding. Also since we encode data, each piece of data is the same number of bits long. So we can further compress, so each data piece is shown as, the number of peice of data times the number of bits each data piece has.&lt;/p&gt;
-
+&lt;h2&gt; 2.5. Why sorting is important in C-Oriented DBs ? &lt;/h2&gt;
 &lt;p&gt;When doing adHoc queries, there are different sort orders of data that would improve performance. We might want to list data ordered by date, for instance both in asc and desc order. In R-DBs, indexes can be created but data is rarely ordered with multiple sort orders. In C-DBs you can.&lt;/p&gt;
 &lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-ColumnOriented-ReadStores.png&quot; /&gt;&lt;/p&gt;
 
@@ -223,88 +295,25 @@ The RS can have multiple projections. The tuple mover navigates to the projectio
             &lt;path d=&quot;M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z&quot;/&gt;
         &lt;/svg&gt;--&gt; 
         Warning:
-        &lt;em&gt;This architecture requires that the partially inserted data to the RS should be ignored by the incoming adhoc queries, untill the insertion is completed&lt;/em&gt;
+        &lt;em&gt;This architecture requires that the partially inserted data to the RS should be ignored by the incoming adhoc queries, until the insertion is completed&lt;/em&gt;
     &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;h3&gt;Indexing&lt;/h3&gt;
-&lt;p&gt;Now as last thing before we get to the implementations in ClickHouse, some insights on the indexing mechanisms.
-Before we see indexing in DBs, I would like to state the definition of the word &lt;a href=&quot;https://en.wikipedia.org/wiki/Index_(publishing)&quot;&gt;“index”&lt;/a&gt;:&lt;/p&gt;
-&lt;blockquote&gt;
-An index is a list of words or phrases (&apos;headings&apos;) and associated pointers (&apos;locators&apos;) to where useful material relating to that heading can be found in a document or collection of documents. Examples are an index in the back matter of a book and an index that serves as a library catalog. An index differs from a word index, or concordance, in focusing on the subject of the text rather than the exact words in a text, and it differs from a table of contents because the index is ordered by subject, regardless of whether it is early or late in the book, while the listed items in a table of contents is placed in the same order as the book.[1]
-&lt;/blockquote&gt;
+&lt;p&gt;As seen above since we can sort column data. This allows us to compress with run-lenght encoding to reduce the data in terms of bit and store less data on our hard drive. 
+Also since we encode data, each piece of data is the same number of bits long. So we can further compress: each data piece is shown as, the number of piece of data times the number of bits each data piece has.
+All of that allows our DB to read less data from the disk when querying it ! isn’t that beautiful ?&lt;/p&gt;
 
-&lt;p&gt;Now we can understand deeply its usage &lt;a href=&quot;https://en.wikipedia.org/wiki/Database_index&quot;&gt;in DBs&lt;/a&gt;.&lt;/p&gt;
-&lt;blockquote&gt;
-A database index is a data structure that improves the speed of data retrieval operations on a database table at the cost of additional writes and storage space to maintain the index data structure.
-&lt;/blockquote&gt;
+&lt;h2&gt; 2.6. Résumé &lt;/h2&gt;
+&lt;p&gt;In C-Oriented DBs:&lt;/p&gt;
 
-&lt;p&gt;Indexes in DBs are created using the following two info:&lt;br /&gt;
-&lt;strong&gt;Search key:&lt;/strong&gt; A copy of the primary key, the values of the search key is stored in sorted order to be able to search on them easily.&lt;br /&gt;
-&lt;strong&gt;Data ref:&lt;/strong&gt; or pointer, which contains addresses of disk block where the value row of that particular key is stored.    &lt;br /&gt;
-&lt;em&gt;NOTE: the pointed data itself may or may not be ordered.&lt;/em&gt;&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Data is partitioned by columns.&lt;/li&gt;
+  &lt;li&gt;Column Data is stored ordered.&lt;/li&gt;
+  &lt;li&gt;Since data is ordered, so we can us Sparse index.&lt;/li&gt;
+  &lt;li&gt;Data is ordered, so we can compress it.&lt;/li&gt;
+&lt;/ol&gt;
 
-&lt;table&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th&gt;key&lt;/th&gt;
-      &lt;th&gt;DataRef&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;1&lt;/td&gt;
-      &lt;td&gt;0x012F&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;2&lt;/td&gt;
-      &lt;td&gt;0xA29E&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;3&lt;/td&gt;
-      &lt;td&gt;0x27D2&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;…&lt;/td&gt;
-      &lt;td&gt;…&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;There exists two types of index file organisations:&lt;br /&gt;
-&lt;strong&gt; 1. Sequential file organisation &lt;/strong&gt;&lt;br /&gt;
-&lt;strong&gt; 2. Hash file organisation &lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;Lets illustrate how those organisations work using the following DB table. The table is spread across 2 pages that contain four rows each.&lt;br /&gt;
-&lt;strong&gt;Partition ?&lt;/strong&gt; Partitioning allows a table, index, or index-organized table to be subdivided into smaller pieces, where each piece of such a database object is called a partition. Each partition has its own name, and may optionally have its own storage characteristics. The data of partitioned tables and indexes is divided into units that can be spread across more than one filegroup in a database. The data is partitioned horizontally, so that groups of rows are mapped into individual partitions.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-indexing-table.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;We will start with Hash file, and finish with Sequential file index, cause the latest is the one used in ClickHouse.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Hash file organisation:&lt;/strong&gt;
-Is an index that uses a hash function with search keys as parameters to generate addresses of data record.
-This index organisation calculates the direct location of data record on disk.
-Indices are based on the values being distributed uniformly across a range of buckets. The buckets to which a value is assigned are determined by the hash function.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-hash-file.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;As it is the case for all Hash based organisations, the data stored is scattered, non-ordered, so cannot be compressed. Lots of space is not used and wasted.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Sequential file index organisation:&lt;/strong&gt;
-In this, the indices are based on a sorted ordering of the values. These are generally fast and a more traditional type of storing mechanism. These Ordered or Sequential file organizations might store the data in a dense or sparse format.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-sequential-file.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Dense index: &lt;/strong&gt; 
-We can see that the index has an entry for every first name in the table. If we want to look up a user with the first name “Arnaud,” then we perform a binary search on the index and read the location of the data. In contrast, a sparse index only has entries for some of the table rows.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Sparse index:&lt;/strong&gt;&lt;br /&gt;
-We can see that our sparse index only has 2 entries (one for each page). Now, if we want to find the row for “Arnaud,” we can perform a binary search on our index to find that it falls between “Anne” and “Mathieu”. After discovering those bounds, we go to the page starting with “Anne” and begin scanning for Arnaud’s row. Notice that the data is now sorted on the right side for this example. This sorting is a limitation of the sparse index. A sparse index requires ordered data; otherwise, the scanning step would be impossible.&lt;/p&gt;
-
-&lt;p&gt;Dense indexes require more maintenance than sparse indexes at write-time. Since every row must have an entry, the database must maintain the index on inserts, updates, and deletes. Having an entry for every row also means that dense indexes will require more memory. The benefit of a dense index is that values can be quickly found with just a binary search. Dense indexes also do not impose any ordering requirements on the data.
-Sparse indexes require less maintenance than dense indexes at write-time since they only contain a subset of the values. This lighter maintenance burden means that inserts, updates, and deletes will be faster. Having fewer entries also means that the index will use less memory. Finding data is slower since a scan across the page typically follows the binary search. Sparse indexes are also only an option when working with ordered data.&lt;/p&gt;
-
-&lt;p&gt;Now. How those structures are used in clickhouse ?&lt;/p&gt;
+&lt;p&gt;Now we have learned a lot about C-Oriented Columns. How things work really in clickhouse ?&lt;/p&gt;
 
 &lt;hr /&gt;
 
