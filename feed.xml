@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.3">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2023-11-04T15:33:05+01:00</updated><id>/feed.xml</id><title type="html">Özgün ÖZ</title><subtitle>Fullstack Developer, Msc. Computer Engineer</subtitle><entry><title type="html">How to handle Secrets in Java</title><link href="/secrets-in-java" rel="alternate" type="text/html" title="How to handle Secrets in Java" /><published>2023-08-30T12:18:00+02:00</published><updated>2023-08-30T12:18:00+02:00</updated><id>/secrets-in-java</id><content type="html" xml:base="/secrets-in-java"><![CDATA[<p>This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.3">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2023-11-04T18:12:59+01:00</updated><id>/feed.xml</id><title type="html">Özgün ÖZ</title><subtitle>Fullstack Developer, Msc. Computer Engineer</subtitle><entry><title type="html">How to handle Secrets in Java</title><link href="/secrets-in-java" rel="alternate" type="text/html" title="How to handle Secrets in Java" /><published>2023-08-30T12:18:00+02:00</published><updated>2023-08-30T12:18:00+02:00</updated><id>/secrets-in-java</id><content type="html" xml:base="/secrets-in-java"><![CDATA[<p>This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.</p>
 
 <p>All modern production applications have some parameters/configurations to allow maximum flexibility of its execution. 
 There are different ways to manage those parameters, as there are different type of parameters, 
@@ -276,12 +276,13 @@ ClickHouse® is a high-performance, column-oriented SQL database management syst
   <li>It is a true Column Based Database</li>
   <li>Uses data compression as a key role of its internal mechanism</li>
   <li>Stores data on disk</li>
-  <li>Process data in parallel (CPU) and has a distributed architecture (every instance is independent)</li>
+  <li>Process data in blocks (similar data is stored together), in parallel (uses multicore CPUs) and has a distributed architecture (every instance is independent)</li>
   <li>Has SQL support (pretty much)</li>
   <li>Real time Data inserts (async data inserts do not block queries)</li>
+  <li>It is Opensource</li>
 </ul>
 
-<p>In order to understand it’s true power, its difference from other DBs, lets first try to understand the basic concepts behind Column Oriented DBs and OLAP queries.</p>
+<p>In order to understand it’s true power and its differences from other DBs, lets first try to understand the basic concepts behind Column Oriented DBs and OLAP queries.</p>
 
 <hr />
 
@@ -299,6 +300,22 @@ Meaning that it is I/O and compute intensive (bottleneck is usually IO).</li>
 Since we have lots of attributes and huge data, cache, index, pre-aggregation have limited value.</li>
   <li>Needs to deliver extremely fast response.<br />
 Response required in as little as 20ms (Most of the time it is the backend for real-time applications)</li>
+</ul>
+
+<p>These systems present the data to the user modelled as a <a href="https://en.wikipedia.org/wiki/OLAP_cube">cube</a> in order to ease querying adhoc slices of it.
+The term cube here refers to a multidimensional dataset, which is also sometimes called a <strong>hypercube</strong> if the number of dimensions is greater than three (which is usually the case).
+It consists of numeric facts called measures that are categorized by dimensions. The measures are placed at the intersections of the hypercube, which is spanned by the dimensions as a vector space.</p>
+
+<p>Let’s say we have a dataset where our fact/measure is the sales of a company, and the dimensions (attributes) of it are time of the sale, product sold, and the city where it is sold.
+Each cell of the cube holds a number that represents some measure of the business, such as sales, the 3 dimensions of our cube are the 3 attributes of our sale data.</p>
+<p><img src="../assets/images/OLAP_Cube.svg.png" width="256" /></p>
+
+<p>Multiple standard operations of an OLAP cube exists to allow users analyse the data on all its aspects.</p>
+<ul>
+  <li>Slicing/Dicing: Filtering the data on one or multiple specific value of one of its dimension. (ex: data for only the year 1989)</li>
+  <li>Drill Down/Up: allows the user to navigate among levels of data ranging from the most summarized (up) to the most detailed (down). (ex: from outdoor sport equipments to individual products)</li>
+  <li>Roll-up: Involves summarizing the data along a dimension. The summarization rule might be an aggregate function, such as computing totals along a hierarchy or applying a set of formulas such as “profit = sales - expenses”</li>
+  <li>Pivot allows an analyst to rotate the cube in space to see its various faces. For example, cities could be arranged vertically and products horizontally while viewing data for a particular year</li>
 </ul>
 
 <h2> 2.2 How DBs work in general </h2>
