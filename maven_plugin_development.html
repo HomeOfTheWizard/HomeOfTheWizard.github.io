@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <!-- Document Settings -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Base Meta -->
+    <!-- dynamically fixing the title for tag/author pages -->
+
+
+
+    <title>Understanding Maven for plugin Development</title>
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Styles'n'Scripts -->
+    <link rel="stylesheet" type="text/css" href="/assets/built/screen.css" />
+    <link rel="stylesheet" type="text/css" href="/assets/built/screen.edited.css" />
+    <link rel="stylesheet" type="text/css" href="/assets/built/syntax.css" />
+    <!-- highlight.js -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css">
+    <style>.hljs { background: none; }</style>
+
+    <!--[if IE]>
+        <style>
+            p, ol, ul{
+                width: 100%;
+            }
+            blockquote{
+                width: 100%;
+            }
+        </style>
+    <![endif]-->
+    
+    <!-- This tag outputs SEO meta+structured data and other important settings -->
+    <meta name="description" content="Fullstack Developer, Msc. Computer Engineer" />
+    <link rel="shortcut icon" href="/assets/images/favicon.png" type="image/png" />
+    <link rel="canonical" href="/maven_plugin_development" />
+    <meta name="referrer" content="no-referrer-when-downgrade" />
+
+     <!--title below is coming from _includes/dynamic_title-->
+    <meta property="og:site_name" content="Özgün ÖZ" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Understanding Maven for plugin Development" />
+    <meta property="og:description" content="Deep dive into maven’s internals to help the development of plugins This will be probably the first post of a series about how maven works and how to contribute to its ecosystem. In this post, I will talk about the core components and internal mechanism of maven that developers should" />
+    <meta property="og:url" content="/maven_plugin_development" />
+    <meta property="og:image" content="/assets/images/maven.png" />
+    <meta property="article:publisher" content="https://www.facebook.com/ghost" />
+    <meta property="article:author" content="https://www.facebook.com/ghost" />
+    <meta property="article:published_time" content="2023-08-30T12:18:00+02:00" />
+    <meta property="article:modified_time" content="2023-08-30T12:18:00+02:00" />
+    <meta property="article:tag" content="Development" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Understanding Maven for plugin Development" />
+    <meta name="twitter:description" content="Deep dive into maven’s internals to help the development of plugins This will be probably the first post of a series about how maven works and how to contribute to its ecosystem. In this post, I will talk about the core components and internal mechanism of maven that developers should" />
+    <meta name="twitter:url" content="/" />
+    <meta name="twitter:image" content="/assets/images/maven.png" />
+    <meta name="twitter:label1" content="Written by" />
+    <meta name="twitter:data1" content="Özgün ÖZ" />
+    <meta name="twitter:label2" content="Filed under" />
+    <meta name="twitter:data2" content="Development" />
+    <meta name="twitter:site" content="@tryghost" />
+    <meta name="twitter:creator" content="@tryghost" />
+    <meta property="og:image:width" content="1400" />
+    <meta property="og:image:height" content="933" />
+
+    <script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Website",
+    "publisher": {
+        "@type": "Organization",
+        "name": "Özgün ÖZ",
+        "logo": "/assets/images/blog-icon.png"
+    },
+    "url": "/maven_plugin_development",
+    "image": {
+        "@type": "ImageObject",
+        "url": "/assets/images/maven.png",
+        "width": 2000,
+        "height": 666
+    },
+    "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "/maven_plugin_development"
+    },
+    "description": "Deep dive into maven’s internals to help the development of plugins This will be probably the first post of a series about how maven works and how to contribute to its ecosystem. In this post, I will talk about the core components and internal mechanism of maven that developers should"
+}
+    </script>
+
+    <!-- <script type="text/javascript" src="https://demo.ghost.io/public/ghost-sdk.min.js?v=724281a32e"></script>
+    <script type="text/javascript">
+    ghost.init({
+    	clientId: "ghost-frontend",
+    	clientSecret: "f84a07a72b17"
+    });
+    </script> -->
+
+    <meta name="generator" content="Jekyll 3.6.2" />
+    <link rel="alternate" type="application/rss+xml" title="Understanding Maven for plugin Development" href="/feed.xml" />
+
+
+</head>
+<body class="post-template">
+
+    <div class="site-wrapper">
+        <!-- All the main content gets inserted here, index.hbs, post.hbs, etc -->
+        <!-- default -->
+
+<!-- The tag above means: insert everything in this file
+into the {body} of the default.hbs template -->
+
+<header class="site-header outer">
+    <div class="inner">
+        <nav class="site-nav">
+    <div class="site-nav-left">
+        
+            <ul class="nav" role="menu">
+    <li class="nav-home" role="menuitem"><a href="/">Blog</a></li>
+    <li class="nav-about" role="menuitem"><a href="/about/">About Me</a></li>
+</ul>
+
+        
+    </div>
+    <div class="site-nav-right">
+        <div class="social-links">
+            <a class="social-link social-link-tw" href="https://www.linkedin.com/in/%C3%B6zg%C3%BCn-%C3%B6z-954a8b20/" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg></a>
+            <a class="social-link social-link-tw" href="https://github.com/HomeOfTheWizard" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" /></svg></a>
+            <a class="social-link social-link-tw" href="https://stackoverflow.com/users/1594088" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M15 21h-10v-2h10v2zm6-11.665l-1.621-9.335-1.993.346 1.62 9.335 1.994-.346zm-5.964 6.937l-9.746-.975-.186 2.016 9.755.879.177-1.92zm.538-2.587l-9.276-2.608-.526 1.954 9.306 2.5.496-1.846zm1.204-2.413l-8.297-4.864-1.029 1.743 8.298 4.865 1.028-1.744zm1.866-1.467l-5.339-7.829-1.672 1.14 5.339 7.829 1.672-1.14zm-2.644 4.195v8h-12v-8h-2v10h16v-10h-2z" /></svg></a>
+            <a class="social-link social-link-tw" href="https://www.instagram.com/ozgunnoz" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg></a>
+        </div>
+        
+            <a class="subscribe-button" href="#subscribe">Subscribe</a>
+        
+    </div>
+</nav>
+
+    </div>
+</header>
+
+<!-- Everything inside the #post tags pulls data from the post -->
+<!-- #post -->
+
+<main id="site-main" class="site-main outer" role="main">
+    <div class="inner">
+
+        <article class="post-full  tag-development tag-java post ">
+
+            <header class="post-full-header">
+                <section class="post-full-meta">
+                    <time class="post-full-meta-date" datetime="30 August 2023">30 August 2023</time>
+                    
+                        <span class="date-divider">/</span>
+                        
+                            
+                               <a href='/tag/development/'>DEVELOPMENT</a>,
+                            
+                        
+                            
+                               <a href='/tag/java/'>JAVA</a>
+                            
+                        
+                    
+                </section>
+                <h1 class="post-full-title">Understanding Maven for plugin Development</h1>
+            </header>
+
+            
+            <figure class="post-full-image" style="background-image: url(/assets/images/maven.png)">
+            </figure>
+            
+
+            <section class="post-full-content">
+                <div class="kg-card-markdown">
+                    <p>Deep dive into maven’s internals to help the development of plugins</p>
+
+<p>This will be probably the first post of a series about how maven works and how to contribute to its ecosystem.<br />
+In this post, I will talk about the core components and internal mechanism of maven that developers should know if they want to develop plugins.
+While developing my first plugins I have had a hard time to find all information in details in the documentations. I even ended up contributing to the maven documentations.
+So the idea here is to give you important headlines and an introduction to the core features, and pointing you to detailed documentation links if you want to go further.</p>
+
+<h1 id="quick-reminder">Quick reminder</h1>
+<h2 id="what-is-maven-">What is MAVEN ?</h2>
+<p><a href="https://maven.apache.org/what-is-maven.html">Maven</a> is one of the most used build tools in the Java echo system. While helping us build our project, it does a lot more than just packaging it.<br />
+You probably used a few of its plugins. Failsafe and Surefire plugins are most commonly used ones explicitly. 
+But Maven is actually conceived with a plugin based architecture. Meaning everything you do with maven is running plugin.<br />
+Even the basic commands you use, like <code class="language-plaintext highlighter-rouge">mvn clean install</code> are actually using <code class="language-plaintext highlighter-rouge">clean</code> and <code class="language-plaintext highlighter-rouge">install</code> plugins. See <a href="https://maven.apache.org/plugins/index.html">here</a> for more details.
+This is what allows maven to expand its usage so easily.<br />
+You sometimes even use maven outside the build context, on your CI or deployment pipelines. <code class="language-plaintext highlighter-rouge">sonar-scanner</code> or <code class="language-plaintext highlighter-rouge">liquibase</code> plugins are good examples.</p>
+
+<p>If you want to develop your own plugin to add new features to maven and use it on your CI or deployment pipelines, the official <a href="https://maven.apache.org/plugin-developers/index.html">documentation</a> is always a good start.
+You might find some pages out of date. Maven is an open sourced project developed mainly by the community. While writing this post, I am also trying to update it. Please do the same.
+Also please have a look <a href="https://maven.apache.org/plugin-developers/common-bugs.html">here</a>, so you do not fell into common errors when starting with maven.</p>
+
+<h2 id="how-maven-works-">How Maven works ?</h2>
+<p>You probably all know but I will repeat for the sake of introduction, everything starts by defining our maven build writing a <code class="language-plaintext highlighter-rouge">pom.xml</code>.<br />
+We typically define the dependencies and resources we need to build our application, and the plugins/extensions we need part of our build process to do so.</p>
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;project</span> <span class="na">xmlns=</span><span class="s">"http://maven.apache.org/POM/4.0.0"</span> <span class="na">xmlns:xsi=</span><span class="s">"http://www.w3.org/2001/XMLSchema-instance"</span>
+         <span class="na">xsi:schemaLocation=</span><span class="s">"http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"</span>
+         <span class="na">child.project.url.inherit.append.path=</span><span class="s">..</span> <span class="nt">&gt;</span>
+<span class="nt">&lt;modelVersion/&gt;</span>
+
+    <span class="nt">&lt;groupId&gt;</span>com.example<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>my demo app<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;version&gt;</span>1.0.0<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;packaging&gt;</span>jar<span class="nt">&lt;/packaging&gt;</span>
+    
+    <span class="nt">&lt;name&gt;</span>maven-demo-app<span class="nt">&lt;/name&gt;</span>
+    <span class="nt">&lt;description&gt;</span>an example of pom configuration<span class="nt">&lt;/description&gt;</span>
+    
+    ...
+    <span class="nt">&lt;dependencies&gt;</span>
+        <span class="nt">&lt;dependency&gt;</span>
+            <span class="nt">&lt;groupId/&gt;</span>
+            <span class="nt">&lt;artifactId/&gt;</span>
+            <span class="nt">&lt;version/&gt;</span>
+        <span class="nt">&lt;/dependency&gt;</span>
+    <span class="nt">&lt;/dependencies&gt;</span>
+    ...
+
+    <span class="nt">&lt;build&gt;</span>
+        ...
+        <span class="nt">&lt;resources&gt;</span>
+            <span class="nt">&lt;resource&gt;</span>
+                <span class="nt">&lt;directory/&gt;</span>
+                <span class="nt">&lt;includes/&gt;</span>
+                <span class="nt">&lt;excludes/&gt;</span>
+            <span class="nt">&lt;/resource&gt;</span>
+        <span class="nt">&lt;/resources&gt;</span>
+       ...
+        <span class="nt">&lt;plugins&gt;</span>
+            <span class="nt">&lt;plugin&gt;</span>
+                <span class="nt">&lt;groupId/&gt;</span>
+                <span class="nt">&lt;artifactId/&gt;</span>
+                <span class="nt">&lt;version/&gt;</span>
+            <span class="nt">&lt;/plugin&gt;</span>
+        <span class="nt">&lt;/plugins&gt;</span>
+        ...
+        <span class="nt">&lt;extensions&gt;</span>
+            <span class="nt">&lt;extension&gt;</span>
+                <span class="nt">&lt;groupId/&gt;</span>
+                <span class="nt">&lt;artifactId/&gt;</span>
+                <span class="nt">&lt;version/&gt;</span>
+            <span class="nt">&lt;/extension&gt;</span>
+        <span class="nt">&lt;/extensions&gt;</span>
+    <span class="nt">&lt;/build&gt;</span>
+
+<span class="nt">&lt;/project&gt;</span>
+</code></pre></div></div>
+
+<p>See <a href="https://maven.apache.org/ref/3.9.6/maven-model/maven.html">here</a> for the full API.</p>
+
+<p>When we launch a maven command, typically on cli:</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> mvn <span class="nt">-help</span>
+usage: mvn <span class="o">[</span>options] <span class="o">[</span>&lt;goal<span class="o">(</span>s<span class="o">)&gt;]</span> <span class="o">[</span>&lt;phase<span class="o">(</span>s<span class="o">)&gt;]</span>
+</code></pre></div></div>
+<p>Maven will read our pom.xml to see what we want to do, depending on what <em>command</em> we have triggered.<br />
+A <strong>Goal</strong> is simply an action made available via a <strong>plugin</strong>.<br />
+A <strong>Phase</strong> is part of maven <strong>Lifecycle</strong>, and we can associate goals to a phase as we want.<br />
+So using Lifecycles and phases we can trigger multiple goals to achieve what we want. A detailed explanation on Lifecycles can be found <a href="https://maven.apache.org/ref/3.9.6/maven-core/lifecycles.html">here</a>.</p>
+
+<p>For example when we launch <code class="language-plaintext highlighter-rouge">mvn install</code>, maven will launch a list of phases in a specific order that are part of the default lifecycle, and the plugin goals associated to each phase (by default or specified in our POM).
+It will gather the sources and resources to build the classpath, compile the project, launch tests if any, package the app, and install it in our local repository.</p>
+
+<p>As usually does all package managers, maven uses repositories to:</p>
+<ul>
+  <li>Fetch the dependencies and plugins we need when building our own packages.</li>
+  <li>Deploy our application when packaged</li>
+</ul>
+
+<p>This is usually configured in a separate <a href="https://maven.apache.org/ref/3.9.6/maven-settings/settings.html">config</a>, 
+the <code class="language-plaintext highlighter-rouge">settings.xml</code> which is specific to each environment and not published on version control, since it contains credentials to access the repository servers and local configs.</p>
+
+<div class="important">
+    <div style="margin-left: 0.7em;">
+        <strong>Important:</strong>
+        <em>As we can understand from the above, there are multiple components interacting here to build our application. 
+        Maven’s core component is what orchestrates all this lifecycles logic, and each plugin is a separately packaged component.</em>
+    </div>
+</div>
+
+<hr />
+
+<h1 id="inside-maven">Inside Maven</h1>
+<p>Now that we have remembered how to use it, now lets get to the main subject and dig inside Maven to see how it works.</p>
+
+<h2 id="1-maven-core">1. Maven Core</h2>
+<p>Maven is a command line tool, written in java and packaged as an executable that will run using your JRE. <br />
+If you check the content of the <code class="language-plaintext highlighter-rouge">mvn</code> script that is actually launched when typing it on the cli, you will see that it is basically a bash script running a java process.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="nb">exec</span> <span class="s2">"</span><span class="nv">$JAVACMD</span><span class="s2">"</span> <span class="se">\</span>
+  <span class="nv">$MAVEN_OPTS</span> <span class="se">\</span>
+  <span class="nv">$MAVEN_DEBUG_OPTS</span> <span class="se">\</span>
+  <span class="nt">-classpath</span> <span class="s2">"</span><span class="k">${</span><span class="nv">CLASSWORLDS_JAR</span><span class="k">}</span><span class="s2">"</span> <span class="se">\</span>
+  <span class="s2">"-Dclassworlds.conf=</span><span class="k">${</span><span class="nv">MAVEN_HOME</span><span class="k">}</span><span class="s2">/bin/m2.conf"</span> <span class="se">\</span>
+  <span class="s2">"-Dmaven.home=</span><span class="k">${</span><span class="nv">MAVEN_HOME</span><span class="k">}</span><span class="s2">"</span> <span class="se">\</span>
+  <span class="s2">"-Dlibrary.jansi.path=</span><span class="k">${</span><span class="nv">MAVEN_HOME</span><span class="k">}</span><span class="s2">/lib/jansi-native"</span> <span class="se">\</span>
+  <span class="s2">"-Dmaven.multiModuleProjectDirectory=</span><span class="k">${</span><span class="nv">MAVEN_PROJECTBASEDIR</span><span class="k">}</span><span class="s2">"</span> <span class="se">\</span>
+  <span class="k">${</span><span class="nv">CLASSWORLDS_LAUNCHER</span><span class="k">}</span> <span class="k">${</span><span class="nv">MAVEN_ARGS</span><span class="k">}</span> <span class="s2">"</span><span class="nv">$@</span><span class="s2">"</span>
+
+</code></pre></div></div>
+
+<p>Without digging in too much details here, I will point you to the official documentation if you want further details.
+The following <a href="https://maven.apache.org/ref/3.9.6/">documentation</a> shows in details its internal components.</p>
+<p><img src="../assets/images/maven.drawio.png" /></p>
+<p>This is highly simplified version that shows only the main components that we will talk about.
+The <b style="color:steelblue">blue</b> boxes are the maven components and the <b style="color:sandybrown">orange</b> ones are external libraries used by maven.</p>
+
+<p>The <strong>Distribution</strong> is the full package we get when we download maven executables.</p>
+
+<p>The <strong>Core</strong> component is where we implement all the maven lifecycle and phase logic.
+It interacts with the other components to get the information necessary to build the lifecycles (maven and project settings, plugin settings ect.).<br />
+This is also where we have the Class Loader hierarchy and extensions setup for the maven lifecycles execution, which we will dig deeper further in this article.</p>
+
+<p>The <strong>PluginAPI</strong> is basically where we make the interface between the maven lifecycles and the goals to execute from the plugins. We are going to use this API to code our plugins so maven can use them.
+The <a href="https://maven.apache.org/ref/3.9.6/maven-core/index.html">core</a> component on the schema is the main application that will manage everything necessary for the build process defined in your pom.xml.<br />
+As you already guessed from the title of this article, we will talk in more details about this component further.</p>
+
+<p>The <strong>Settings</strong> components is basically what you set in your maven settings, ` ~/.m2/settings.xml` plus the settings overridden on the cli.</p>
+
+<p>The <strong>Resolver</strong> is a component for working with artifact repositories and dependency resolution. 
+It deals with the specification of local repository, remote repository, developer workspaces, artifact transports, and artifact resolution.</p>
+
+<p>The <strong>Model</strong> is basically your model for Maven POM (Project Object Model), where you define your project settings.</p>
+
+<p>The <strong>SISU</strong> components is where we manage the dependency injection of objects in maven plugins/extensions. It a crucial components in the plugin system, 
+and we must understand how it works in case we are building extensions.</p>
+
+<h2 id="2-maven-classloader-system">2. Maven Classloader system</h2>
+<p>I will repeat it probably multiple times, but It is why I love maven, so I won’t get tired of saying it: <em>maven is a plugin based system</em>.</p>
+
+<p>Lets quickly remind what is a classloader before explaining how maven uses it.<br />
+A <a href="https://en.wikipedia.org/wiki/Java_Classloader">ClassLoader</a> in java is a code that runs as part of the JRE, 
+and it is responsible for finding the class files necessary for the execution of the application and load them in the JVM.</p>
+
+<p>Maven uses a classloading hierarchy to separates the class-worlds of its core, and its plugins. What that means is that, 
+with this classloader hierarchy, we prevent exposing all the classes/packages used by the core, to the plugins.<br />
+This level of isolation allows maven to work securely while allowing its extension by third party plugins developed by mere human beings like me, and preventing I break everything in it.</p>
+<p><img src="../assets/images/maven-classWorlds.drawio.png" /></p>
+
+<p>Basically when booting maven, as we can see from the <code class="language-plaintext highlighter-rouge">mvn</code> script above, we launch the jar of the 
+<a href="https://codehaus-plexus.github.io/plexus-classworlds/">plexus-classworld</a> framework that is building this classLoader hierarchy, located in <code class="language-plaintext highlighter-rouge">${maven.home}/boot/plexus-classworlds-*.jar</code>.<br />
+This creates the <strong>System ClassLoader</strong>. Then the different classLoaders are built, maven core, project and plugin classLoaders (there are actually more than that, but we will simplify for an introduction).</p>
+
+<p>Content of this <strong>Core Classloader</strong> is configured in <code class="language-plaintext highlighter-rouge">${maven.home}/bin/m2.conf</code> and contains jars that constitutes a maven installation, located in <code class="language-plaintext highlighter-rouge">${maven.home}/lib/*.jar</code>. 
+This core class loader hosts both the public API of Maven and internal utility classes. Core extensions classloaders use Maven Core classloader as the parent and have access to both exported and internal Maven Core classes.</p>
+
+<p>We can add other elements to this class loader via <strong><a href="https://maven.apache.org/examples/maven-3-lifecycle-extensions.html">Core Extensions</a></strong>. 
+Those classes will be available for maven core component, and all the plugins in the project through the child classloader Maven API.
+We will talk more in details further how the extensions works. Each core extension is loaded in a separate classloader and there is no mechanism to share classes among core extensions.</p>
+
+<p>The child class loader, <strong>Maven API ClassLoader</strong>, can only access the public Maven API from the core class loader, 
+i.e. roughly only classes from the package org.apache.maven and its subpackages are available to the child class loader.</p>
+
+<p><strong>Project ClassLoader</strong> use Maven API classloader as the parent and import exported classes from project build extension realms. 
+In case a project uses no build extensions and hence has no need for a dedicated project class loader, this class loader will technically not be created.</p>
+
+<p>For each plugin used by a project, a <strong>Plugin ClassLoader</strong> is created as a child of the project class loader. If the project has no extensions and as such no project class loader, 
+the plugin class loader will be a direct child of the Maven API ClassLoader instead.</p>
+
+<p>A detailed documentation can be found <a href="https://maven.apache.org/guides/mini/guide-maven-classloading.html#Core_Classloader">here</a> on the official website.</p>
+
+<h2 id="3-maven-dependency-injection">3. Maven Dependency Injection</h2>
+<p>Maven uses <a href="https://projects.eclipse.org/projects/technology.sisu"><strong>SISU</strong></a>, which is a DI Container implementation based on the <a href="https://code.google.com/p/google-guice/">Google Guice</a>. 
+It allows using standard <a href="">JSR330 annotations</a> for declaring and injecting the objects we need in our classes.<br />
+The <a href="https://eclipse.github.io/sisu.plexus/">doc</a> here (that I have contributed) explains how to use the different annotations.</p>
+
+<p>It basically allows you to inject components in your Mojo like the following:</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">package</span> <span class="nn">org.apache.maven.plugins</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">javax.inject.Inject</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">org.apache.maven.plugin.AbstractMojo</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.maven.plugin.MojoExecutionException</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.maven.plugins.annotations.LifecyclePhase</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.maven.plugins.annotations.Mojo</span><span class="o">;</span>
+
+<span class="nd">@Mojo</span><span class="o">(</span> <span class="n">name</span> <span class="o">=</span> <span class="s">"hello"</span><span class="o">,</span> <span class="n">defaultPhase</span> <span class="o">=</span> <span class="nc">LifecyclePhase</span><span class="o">.</span><span class="na">VALIDATE</span><span class="o">,</span> <span class="n">requiresProject</span> <span class="o">=</span> <span class="kc">false</span> <span class="o">)</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyMojo</span> <span class="kd">extends</span> <span class="nc">AbstractMojo</span>
+<span class="o">{</span>
+
+    <span class="kd">private</span> <span class="nc">MyComponent</span> <span class="n">component</span><span class="o">;</span>
+
+    <span class="nd">@Inject</span>
+    <span class="kd">public</span> <span class="nf">MyMojo</span><span class="o">(</span> <span class="nc">MyComponent</span> <span class="n">component</span> <span class="o">)</span>
+    <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">component</span> <span class="o">=</span> <span class="n">component</span><span class="o">;</span>    
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">execute</span><span class="o">()</span>
+        <span class="kd">throws</span> <span class="nc">MojoExecutionException</span>
+    <span class="o">{</span>
+        <span class="n">component</span><span class="o">.</span><span class="na">hello</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>According to the documentation, in order to be able to use the <code class="language-plaintext highlighter-rouge">MyComponent</code>, we have to annotate it with JSR330.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Named</span>
+<span class="nd">@Singleton</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyComponent</span>
+    <span class="kd">implements</span> <span class="nc">Component</span>
+<span class="o">{</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<div class="alert">
+    <div style="margin-left: 0.7em;">
+        <!--<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16">
+            <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+        </svg>--> 
+        <strong>But</strong> I have discovered that it is also capable of injecting simple POJOs using their default constructor, even if the <code class="language-plaintext highlighter-rouge">@Named</code> or <code class="language-plaintext highlighter-rouge">@Singleton</code> annotations are not used.
+    </div>
+</div>
+
+<p>The official <a href="https://maven.apache.org/maven-jsr330.html">documentation</a> gives a brief introduction to how maven uses it, and what to do to make the annotations work if you want to use them in your plugin or extension.<br />
+The important thing to catch here, is the usage of the <a href="https://eclipse.org/sisu/docs/api/org.eclipse.sisu.mojos/">sisu-maven-plugin</a> in your project.  This will add your components to the index file so they are picked up by the SISU container.
+From the docs:</p>
+<blockquote>
+Enumerating the implementations means that no classpath scanning is required in runtime to find them, which keeps Maven's startup time fast. Note that our container is configured by default to only use the index. While this keeps things fast, if you use JSR-330 components in dependencies that do not contain an index, those implementations will currently not be discovered. This is a compromise that is reasonable given Maven is a command-line tool where startup speed is important.
+</blockquote>
+
+<p>If you are interested in injecting components in the container dynamically, I unfortunately no other documentation other than <a href="https://github.com/eclipse/sisu.plexus/issues/35">this</a> long issue I have filled myself.
+You can also take example of this <a href="https://github.com/HomeOfTheWizard/spring-bridge-maven-plugin">plugin</a> I have developped to achieve the same.</p>
+
+<h2 id="4-maven-plugins">4. Maven Plugins</h2>
+<p>When we execute a goal in maven, this points to a plugin’s code. Plugins consists of one or more <strong>Mojos</strong>, each one being the implementation for one of the plugin’s goals.
+A Mojo is basically the API to use when coding your plugin, so that maven can use it.
+I will not go into too much details here since there are already hundreds of articles/posts online, 
+including the <a href="https://maven.apache.org/ref/3.9.6/maven-plugin-api/index.html">official documentation</a>, describing how to create a Mojo, build and package your plugin.</p>
+
+<h2 id="5-maven-extensions">5. Maven Extensions</h2>
+<p>Extensions are basically a way to add new features to maven core or to your project build lifecycle, by adding new classes to the different class loaders explained above. 
+This allows us to insert code that will impact multiple plugins at once.</p>
+
+<p>There are two types of extensions:</p>
+<ol>
+  <li><strong>Core extensions</strong> are loaded as part of Maven runtime startup and disposed of as part of Maven runtime shutdown.</li>
+  <li><strong>Build extensions</strong> are loaded lazily during the build of your project.</li>
+</ol>
+
+<p>Difference between late and early registration refers to which class-world will it be part of. Early registration simply means that the extension will be used when maven core bootstraps. Late registration means that the extension will be used only after maven core is launched, our project model is built and our the built lifecycle has begun.</p>
+
+<h3 id="51-core-extensions">5.1. Core Extensions</h3>
+<p>Core Extensions is a new mechanism introduced in Maven 3.3.0 which allows additional components to be loaded into Maven Core as part of a build session.
+As already seen above, each core extension is loaded in a separate classloader and there is no mechanism to share classes among core extensions. Core extensions classloaders use Maven Core classloader as the parent and have access to both exported and internal Maven Core classes.</p>
+
+<p>From the <a href="https://maven.apache.org/guides/mini/guide-using-extensions.html">official documentation</a>:</p>
+<blockquote>
+The mechanism allows extensions to either replace default Sisu components with custom ones or add new components which are used at run time. In addition one could also expose additional packages from the Core Classloader.
+</blockquote>
+
+<p>What I want to highlight here is the mention: <em>“one could also expose additional packages from the Core Classloader”.</em><br />
+Core extension can use <a href="https://maven.apache.org/ref/3.9.0/maven-core/core-extensions.html">META-INF/maven/extension.xml</a> descriptor (which declares what packages are exported from maven core to extensions) 
+to declare packages and artifacts exported by the extension. If the descriptor is not present, no packages or artifacts are exported, but the extension can still contribute components to Maven Core extension points.</p>
+
+<p>Core extensions are configured in <code class="language-plaintext highlighter-rouge">${maven.projectBasedir}/.mvn/extensions.xml</code> configuration file.</p>
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+<span class="nt">&lt;extensions&gt;</span>
+  <span class="nt">&lt;extension&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>...<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>...<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;version&gt;</span>...<span class="nt">&lt;/version&gt;</span>
+  <span class="nt">&lt;/extension&gt;</span>
+  <span class="nt">&lt;extension&gt;</span>...<span class="nt">&lt;/extension&gt;</span>
+  ...
+<span class="nt">&lt;/extensions&gt;</span>
+</code></pre></div></div>
+
+<h3 id="52-build-extensions">5.2. Build Extensions</h3>
+<p>From the <a href="https://maven.apache.org/pom.html#Extensions">docs</a>:</p>
+<blockquote>
+Extensions are a list of artifacts that are to be used in this build. They will be included in the running build's classpath. 
+They can enable extensions to the build process (such as add an ftp provider for the Wagon transport mechanism), as well as make plugins active which make changes to the build lifecycle. 
+In short, extensions are artifacts that activated during build. The extensions do not have to actually do anything nor contain a Mojo. 
+For this reason, extensions are excellent for specifying one out of multiple implementations of a common plugin interface.
+</blockquote>
+
+<p>Those extensions are typically used to enable Wagon providers, used for the transport of artifact between repositories, and plug-ins which provide lifecycle enhancements.  <br />
+Example:</p>
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;build&gt;</span>
+    <span class="nt">&lt;extensions&gt;</span>
+      <span class="nt">&lt;extension&gt;</span>
+        <span class="nt">&lt;groupId&gt;</span>org.apache.maven.wagon<span class="nt">&lt;/groupId&gt;</span>
+         <span class="nt">&lt;artifactId&gt;</span>wagon-ftp<span class="nt">&lt;/artifactId&gt;</span>
+         <span class="nt">&lt;version&gt;</span>2.10<span class="nt">&lt;/version&gt;</span>
+      <span class="nt">&lt;/extension&gt;</span>
+    <span class="nt">&lt;/extensions&gt;</span>
+  <span class="nt">&lt;/build&gt;</span>
+</code></pre></div></div>
+<p>Build extensions are registered (late registration) via your <code class="language-plaintext highlighter-rouge">pom.xml</code>. Examples can be found <a href="https://maven.apache.org/guides/mini/guide-using-extensions.html#build-extension">here</a></p>
+
+<hr />
+
+<h1 id="recap">RECAP</h1>
+<p>In this post I have tried to cover all the core components and internal mechanisms in maven that I found important to understand for a developer who wants to contribute to maven with a plugin or extension.</p>
+
+<p>The distinction and interaction between the <strong>Core and the Plugin API</strong> is an important point to understand when we want to pinpoint which component we need to target for a new feature or fix.<br />
+The <strong>Classloader system</strong> is what builds the boundaries between the core and plugins. Its understanding is crucial in order to prevent hours wasted trying to build our new project.<br />
+Finally, the <strong>SISU</strong> container, which is at the core of maven, is and important component to understand if we want to build reusable components and build transverse features.</p>
+
+<p>Hope that helps you in your journey. Next post will probably be on the maven core. Stay tuned ! 🖖</p>
+
+<hr />
+
+<h1>Appendix: References</h1>
+
+<p>https://maven.apache.org/what-is-maven.html
+https://maven.apache.org/plugins/index.html
+https://maven.apache.org/plugin-developers/index.html
+https://maven.apache.org/plugin-developers/common-bugs.html
+https://en.wikipedia.org/wiki/Java_Classloader
+https://maven.apache.org/guides/mini/guide-maven-classloading.html#Core_Classloader
+http://takari.io/book/91-maven-classloading.html
+https://cwiki.apache.org/confluence/display/MAVEN/Maven+3.x+Class+Loading
+https://eclipse.github.io/sisu.plexus/
+https://developer.okta.com/blog/2019/09/23/tutorial-build-a-maven-plugin
+https://maven.apache.org/guides/mini/guide-using-extensions.html</p>
+
+
+                </div>
+            </section>
+
+            <!-- Email subscribe form at the bottom of the page -->
+            
+                <section class="subscribe-form">
+                    <h3 class="subscribe-form-title">Subscribe to Özgün ÖZ</h3>
+                    <p>Get the latest posts delivered right to your inbox</p>
+                    <form method="post" action="/subscribe/" class="">
+    <input class="confirm" type="hidden" name="confirm"  /><input class="location" type="hidden" name="location"  /><input class="referrer" type="hidden" name="referrer"  />
+
+    <div class="form-group">
+        <input class="subscribe-email" type="email" name="email"  placeholder="youremail@example.com" />
+    </div>
+    <button class="" type="submit" disabled><span>Subscribe</span></button>
+    <script type="text/javascript">(function(g,h,o,s,t){h[o]('.location')[s]=h[o]('.location')[s] || g.location.href;h[o]('.referrer')[s]=h[o]('.referrer')[s] || h.referrer;})(window,document,'querySelector','value');</script>
+</form>
+
+                </section>
+            
+
+            <footer class="post-full-footer">
+                <!-- Everything inside the #author tags pulls data from the author -->
+                <!-- #author-->
+                
+                    
+                        <section class="author-card">
+                            
+                                <img class="author-profile-image" src="/assets/images/ozgun.jpg" alt="oz" />
+                            
+                            <section class="author-card-content">
+                                <h4 class="author-card-name"><a href="/author/oz">Özgün ÖZ</a></h4>
+                                
+                                    <p>A mere software engineer, aka modern wizard.</p>
+                                
+                            </section>
+                        </section>
+                        <div class="post-full-footer-right">
+                            <a class="author-card-button" href="/author/oz">Read More</a>
+                        </div>
+                    
+                
+                <!-- /author  -->
+            </footer>
+
+            <!-- If you use Disqus comments, just uncomment this block.
+            The only thing you need to change is "test-apkdzgmqhj" - which
+            should be replaced with your own Disqus site-id. -->
+            
+                <section class="post-full-comments">
+                    <div id="disqus_thread"></div>
+                    <script>
+                        var disqus_config = function () {
+                            var this_page_url = '/maven_plugin_development';
+                            var this_page_identifier = '/maven_plugin_development';
+                            var this_page_title = 'Understanding Maven for plugin Development';
+                        };
+                        (function() {
+                            var d = document, s = d.createElement('script');
+                            s.src = 'https://HomeOfTheWizard.disqus.com/embed.js';
+                            s.setAttribute('data-timestamp', +new Date());
+                            (d.head || d.body).appendChild(s);
+                        })();
+                    </script>
+                </section>
+            
+
+        </article>
+
+    </div>
+</main>
+
+<!-- Links to Previous/Next posts -->
+<aside class="read-next outer">
+    <div class="inner">
+        <div class="read-next-feed">
+            
+                
+                
+                
+                
+                    <article class="read-next-card"
+                        
+                            style="background-image: url(/assets/images/blog-cover.jpg)"
+                        
+                    >
+                        <header class="read-next-card-header">
+                            <small class="read-next-card-header-sitetitle">&mdash; Özgün ÖZ &mdash;</small>
+                            
+                                <h3 class="read-next-card-header-title"><a href="/tag/development/">Development</a></h3>
+                            
+                        </header>
+                        <div class="read-next-divider"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 14.5s2 3 5 3 5.5-2.463 5.5-5.5S21 6.5 18 6.5c-5 0-7 11-12 11C2.962 17.5.5 15.037.5 12S3 6.5 6 6.5s4.5 3.5 4.5 3.5"/></svg>
+</div>
+                        <div class="read-next-card-content">
+                            <ul>
+                                
+                                
+                                  
+                                    
+                                        
+                                        
+                                            <li><a href="/secrets_in_java">How to handle Secrets in Java</a></li>
+                                        
+                                    
+                                  
+                                
+                                  
+                                    
+                                  
+                                
+                                  
+                                    
+                                        
+                                        
+                                            <li><a href="/clickhouse101_1">Clickhouse 101 - Data Structures and internals</a></li>
+                                        
+                                    
+                                  
+                                
+                            </ul>
+                        </div>
+                        <footer class="read-next-card-footer">
+                            <a href="/tag/development/">
+                                
+                                    See all 2 posts  →
+                                
+                            </a>
+                        </footer>
+                    </article>
+                
+            
+
+            <!-- If there's a next post, display it using the same markup included from - partials/post-card.hbs -->
+            
+                
+
+    <article class="post-card post-template">
+        
+            <a class="post-card-image-link" href="/secrets_in_java">
+                <div class="post-card-image" style="background-image: url(/assets/images/Secret-Protection.jpg)"></div>
+            </a>
+        
+        <div class="post-card-content">
+            <a class="post-card-content-link" href="/secrets_in_java">
+                <header class="post-card-header">
+                    
+                        
+                            
+                               <span class="post-card-tags">Development</span>
+                            
+                        
+                            
+                                <span class="post-card-tags">Java</span>
+                            
+                        
+                    
+
+                    <h2 class="post-card-title">How to handle Secrets in Java</h2>
+                </header>
+                <section class="post-card-excerpt">
+                    
+                        <p>This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.</p>
+                    
+                </section>
+            </a>
+            <footer class="post-card-meta">
+                
+                    
+                        
+                        <img class="author-profile-image" src="/assets/images/ozgun.jpg" alt="Özgün ÖZ" />
+                        
+                        <span class="post-card-author">
+                            <a href="/author/oz/">Özgün ÖZ</a>
+                        </span>
+                    
+                
+                <span class="reading-time">
+                    
+                    
+                      10 min read
+                    
+                </span>
+            </footer>
+        </div>
+    </article>
+
+            
+
+            <!-- If there's a previous post, display it using the same markup included from - partials/post-card.hbs -->
+            
+                
+
+    <article class="post-card post-template">
+        
+            <a class="post-card-image-link" href="/clickhouse101_1">
+                <div class="post-card-image" style="background-image: url(/assets/images/datastructures.jpg)"></div>
+            </a>
+        
+        <div class="post-card-content">
+            <a class="post-card-content-link" href="/clickhouse101_1">
+                <header class="post-card-header">
+                    
+                        
+                            
+                               <span class="post-card-tags">Development</span>
+                            
+                        
+                            
+                                <span class="post-card-tags">System</span>
+                            
+                        
+                    
+
+                    <h2 class="post-card-title">Clickhouse 101 - Data Structures and internals</h2>
+                </header>
+                <section class="post-card-excerpt">
+                    
+                        <p>First article of the clickhouse 101 series. Lets deep dive into the underlying data structures and internal mechanisms of clickhouse.
+
+</p>
+                    
+                </section>
+            </a>
+            <footer class="post-card-meta">
+                
+                    
+                        
+                        <img class="author-profile-image" src="/assets/images/ozgun.jpg" alt="Özgün ÖZ" />
+                        
+                        <span class="post-card-author">
+                            <a href="/author/oz/">Özgün ÖZ</a>
+                        </span>
+                    
+                
+                <span class="reading-time">
+                    
+                    
+                      23 min read
+                    
+                </span>
+            </footer>
+        </div>
+    </article>
+
+            
+
+        </div>
+    </div>
+</aside>
+
+<!-- Floating header which appears on-scroll, included from includes/floating-header.hbs -->
+<div class="floating-header">
+    <div class="floating-header-logo">
+        <a href="/">
+            
+                <img src="/assets/images/favicon.png" alt="Özgün ÖZ icon" />
+            
+            <span>Özgün ÖZ</span>
+        </a>
+    </div>
+    <span class="floating-header-divider">&mdash;</span>
+    <div class="floating-header-title">Understanding Maven for plugin Development</div>
+    <div class="floating-header-share">
+        <div class="floating-header-share-label">Share this <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M7.5 15.5V4a1.5 1.5 0 1 1 3 0v4.5h2a1 1 0 0 1 1 1h2a1 1 0 0 1 1 1H18a1.5 1.5 0 0 1 1.5 1.5v3.099c0 .929-.13 1.854-.385 2.748L17.5 23.5h-9c-1.5-2-5.417-8.673-5.417-8.673a1.2 1.2 0 0 1 1.76-1.605L7.5 15.5zm6-6v2m-3-3.5v3.5m6-1v2"/>
+</svg>
+</div>
+        <a class="floating-header-share-tw" href="https://twitter.com/share?text=Understanding+Maven+for+plugin+Development&amp;url=https://homeofthewizard.github.io/maven_plugin_development"
+            onclick="window.open(this.href, 'share-twitter', 'width=550,height=235');return false;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M30.063 7.313c-.813 1.125-1.75 2.125-2.875 2.938v.75c0 1.563-.188 3.125-.688 4.625a15.088 15.088 0 0 1-2.063 4.438c-.875 1.438-2 2.688-3.25 3.813a15.015 15.015 0 0 1-4.625 2.563c-1.813.688-3.75 1-5.75 1-3.25 0-6.188-.875-8.875-2.625.438.063.875.125 1.375.125 2.688 0 5.063-.875 7.188-2.5-1.25 0-2.375-.375-3.375-1.125s-1.688-1.688-2.063-2.875c.438.063.813.125 1.125.125.5 0 1-.063 1.5-.25-1.313-.25-2.438-.938-3.313-1.938a5.673 5.673 0 0 1-1.313-3.688v-.063c.813.438 1.688.688 2.625.688a5.228 5.228 0 0 1-1.875-2c-.5-.875-.688-1.813-.688-2.75 0-1.063.25-2.063.75-2.938 1.438 1.75 3.188 3.188 5.25 4.25s4.313 1.688 6.688 1.813a5.579 5.579 0 0 1 1.5-5.438c1.125-1.125 2.5-1.688 4.125-1.688s3.063.625 4.188 1.813a11.48 11.48 0 0 0 3.688-1.375c-.438 1.375-1.313 2.438-2.563 3.188 1.125-.125 2.188-.438 3.313-.875z"/></svg>
+
+        </a>
+        <a class="floating-header-share-fb" href="https://www.facebook.com/sharer/sharer.php?u=https://homeofthewizard.github.io/maven_plugin_development"
+            onclick="window.open(this.href, 'share-facebook','width=580,height=296');return false;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M19 6h5V0h-5c-3.86 0-7 3.14-7 7v3H8v6h4v16h6V16h5l1-6h-6V7c0-.542.458-1 1-1z"/></svg>
+
+        </a>
+    </div>
+    <progress class="progress" value="0">
+        <div class="progress-container">
+            <span class="progress-bar"></span>
+        </div>
+    </progress>
+</div>
+
+
+<!-- /post -->
+
+<!-- The #contentFor helper here will send everything inside it up to the matching #block helper found in default.hbs -->
+
+
+        <!-- Previous/next page links - displayed on every page -->
+        
+
+        <!-- The footer at the very bottom of the screen -->
+        <footer class="site-footer outer">
+            <div class="site-footer-content inner">
+                <section class="copyright"><a href="/">Özgün ÖZ</a> &copy; 2024</section>
+
+                <nav class="site-footer-nav">
+                    <a href="/">Latest Posts</a>
+                    <a href="https://www.linkedin.com/in/%C3%B6zg%C3%BCn-%C3%B6z-954a8b20/" target="_blank" rel="noopener">LinkedIn</a>
+                    <a href="https://github.com/HomeOfTheWizard" target="_blank" rel="noopener">Github</a>
+                    <a href="https://stackoverflow.com/users/1594088" target="_blank" rel="noopener">StackOverflow</a>
+                    <a href="https://www.instagram.com/ozgunnoz" target="_blank" rel="noopener">Instagram</a>
+                </nav>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- The big email subscribe modal content -->
+    
+        <div id="subscribe" class="subscribe-overlay">
+            <a class="subscribe-overlay-close" href="#"></a>
+            <div class="subscribe-overlay-content">
+                
+                    <img class="subscribe-overlay-logo" src="/assets/images/blog-icon.png" alt="Özgün ÖZ" />
+                
+                <h1 class="subscribe-overlay-title">Subscribe to Özgün ÖZ</h1>
+                <p class="subscribe-overlay-description">Stay up to date! Get all the latest &amp; greatest posts delivered straight to your inbox</p>
+                <form method="post" action="/subscribe/" class="">
+    <input class="confirm" type="hidden" name="confirm"  /><input class="location" type="hidden" name="location"  /><input class="referrer" type="hidden" name="referrer"  />
+
+    <div class="form-group">
+        <input class="subscribe-email" type="email" name="email"  placeholder="youremail@example.com" />
+    </div>
+    <button class="" type="submit" disabled><span>Subscribe</span></button>
+    <script type="text/javascript">(function(g,h,o,s,t){h[o]('.location')[s]=h[o]('.location')[s] || g.location.href;h[o]('.referrer')[s]=h[o]('.referrer')[s] || h.referrer;})(window,document,'querySelector','value');</script>
+</form>
+
+            </div>
+        </div>
+    
+
+    <!-- highlight.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.10.0/components/prism-abap.min.js"></script>
+    <script>$(document).ready(function() {
+      $('pre code').each(function(i, block) {
+        hljs.highlightBlock(block);
+      });
+    });</script>
+
+    <!-- jQuery + Fitvids, which makes all video embeds responsive -->
+    <script
+        src="https://code.jquery.com/jquery-3.2.1.min.js"
+        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+        crossorigin="anonymous">
+    </script>
+    <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="https://demo.ghost.io/assets/js/jquery.fitvids.js?v=724281a32e"></script>
+
+
+    <!-- Paginator increased to "infinit" in _config.yml -->
+    <!-- if paginator.posts  -->
+    <!-- <script>
+        var maxPages = parseInt('');
+    </script>
+    <script src="/assets/js/infinitescroll.js"></script> -->
+    <!-- /endif -->
+
+    
+
+
+    <!-- Add Google Analytics  -->
+    <!-- Google Analytics Tracking code -->
+ <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'G-W7BHPYN5QX', 'auto');
+  ga('send', 'pageview');
+
+ </script>
+
+
+    <!-- The #block helper will pull in data from the #contentFor other template files. In this case, there's some JavaScript which we only want to use in post.hbs, but it needs to be included down here, after jQuery has already loaded. -->
+    
+        <script>
+
+// NOTE: Scroll performance is poor in Safari
+// - this appears to be due to the events firing much more slowly in Safari.
+//   Dropping the scroll event and using only a raf loop results in smoother
+//   scrolling but continuous processing even when not scrolling
+$(document).ready(function () {
+    // Start fitVids
+    var $postContent = $(".post-full-content");
+    $postContent.fitVids();
+    // End fitVids
+
+    var progressBar = document.querySelector('progress');
+    var header = document.querySelector('.floating-header');
+    var title = document.querySelector('.post-full-title');
+
+    var lastScrollY = window.scrollY;
+    var lastWindowHeight = window.innerHeight;
+    var lastDocumentHeight = $(document).height();
+    var ticking = false;
+
+    function onScroll() {
+        lastScrollY = window.scrollY;
+        requestTick();
+    }
+
+    function onResize() {
+        lastWindowHeight = window.innerHeight;
+        lastDocumentHeight = $(document).height();
+        requestTick();
+    }
+
+    function requestTick() {
+        if (!ticking) {
+            requestAnimationFrame(update);
+        }
+        ticking = true;
+    }
+
+    function update() {
+        var trigger = title.getBoundingClientRect().top + window.scrollY;
+        var triggerOffset = title.offsetHeight + 35;
+        var progressMax = lastDocumentHeight - lastWindowHeight;
+
+        // show/hide floating header
+        if (lastScrollY >= trigger + triggerOffset) {
+            header.classList.add('floating-active');
+        } else {
+            header.classList.remove('floating-active');
+        }
+
+        progressBar.setAttribute('max', progressMax);
+        progressBar.setAttribute('value', lastScrollY);
+
+        ticking = false;
+    }
+
+    window.addEventListener('scroll', onScroll, {passive: true});
+    window.addEventListener('resize', onResize, false);
+
+    update();
+});
+</script>
+
+    
+
+    <!-- Ghost outputs important scripts and data with this tag - it should always be the very last thing before the closing body tag -->
+    <!-- ghost_foot -->
+
+</body>
+</html>

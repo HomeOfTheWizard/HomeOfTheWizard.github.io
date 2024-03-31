@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.3">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2023-11-05T09:56:52+01:00</updated><id>/feed.xml</id><title type="html">Özgün ÖZ</title><subtitle>Fullstack Developer, Msc. Computer Engineer</subtitle><entry><title type="html">How to handle Secrets in Java</title><link href="/secrets-in-java" rel="alternate" type="text/html" title="How to handle Secrets in Java" /><published>2023-08-30T12:18:00+02:00</published><updated>2023-08-30T12:18:00+02:00</updated><id>/secrets-in-java</id><content type="html" xml:base="/secrets-in-java"><![CDATA[<p>This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.3">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2024-03-31T17:37:17+02:00</updated><id>/feed.xml</id><title type="html">Özgün ÖZ</title><subtitle>Fullstack Developer, Msc. Computer Engineer</subtitle><entry><title type="html">How to handle Secrets in Java</title><link href="/secrets_in_java" rel="alternate" type="text/html" title="How to handle Secrets in Java" /><published>2023-08-30T12:18:00+02:00</published><updated>2023-08-30T12:18:00+02:00</updated><id>/secrets_in_java</id><content type="html" xml:base="/secrets_in_java"><![CDATA[<p>This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.</p>
 
 <p>All modern production applications have some parameters/configurations to allow maximum flexibility of its execution. 
 There are different ways to manage those parameters, as there are different type of parameters, 
@@ -614,4 +614,347 @@ https://www.kdnuggets.com/2018/09/olap-queries-sql-refresher.html
 https://stackoverflow.com/questions/643694/what-is-the-difference-between-utf-8-and-unicode
 https://dataschool.com/data-modeling-101/row-vs-column-oriented-databases/<br />
 https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses/<br />
-https://clickhouse.com/docs/en/optimize/sparse-primary-indexes#an-index-design-for-massive-data-scales</p>]]></content><author><name>Özgün ÖZ</name></author><category term="development" /><category term="system" /><summary type="html"><![CDATA[First article of the clickhouse 101 series. Lets deep dive into the underlying data structures and internal mechanisms of clickhouse.]]></summary></entry><entry><title type="html">Understanding Maven core for plugin Development</title><link href="/maven_sisu" rel="alternate" type="text/html" title="Understanding Maven core for plugin Development" /><published>2023-08-30T12:18:00+02:00</published><updated>2023-08-30T12:18:00+02:00</updated><id>/maven_sisu</id><content type="html" xml:base="/maven_sisu"><![CDATA[<p>Deep dive into maven’s dependency management and classloader system to help the development of plugins</p>]]></content><author><name>Özgün ÖZ</name></author><category term="development" /><category term="java" /><summary type="html"><![CDATA[Deep dive into maven’s dependency management and classloader system to help the development of plugins]]></summary></entry></feed>
+https://clickhouse.com/docs/en/optimize/sparse-primary-indexes#an-index-design-for-massive-data-scales</p>]]></content><author><name>Özgün ÖZ</name></author><category term="development" /><category term="system" /><summary type="html"><![CDATA[First article of the clickhouse 101 series. Lets deep dive into the underlying data structures and internal mechanisms of clickhouse.]]></summary></entry><entry><title type="html">Understanding Maven for plugin Development</title><link href="/maven_plugin_development" rel="alternate" type="text/html" title="Understanding Maven for plugin Development" /><published>2023-08-30T12:18:00+02:00</published><updated>2023-08-30T12:18:00+02:00</updated><id>/maven_plugin_development</id><content type="html" xml:base="/maven_plugin_development"><![CDATA[<p>Deep dive into maven’s internals to help the development of plugins</p>
+
+<p>This will be probably the first post of a series about how maven works and how to contribute to its ecosystem.<br />
+In this post, I will talk about the core components and internal mechanism of maven that developers should know if they want to develop plugins.
+While developing my first plugins I have had a hard time to find all information in details in the documentations. I even ended up contributing to the maven documentations.
+So the idea here is to give you important headlines and an introduction to the core features, and pointing you to detailed documentation links if you want to go further.</p>
+
+<h1 id="quick-reminder">Quick reminder</h1>
+<h2 id="what-is-maven-">What is MAVEN ?</h2>
+<p><a href="https://maven.apache.org/what-is-maven.html">Maven</a> is one of the most used build tools in the Java echo system. While helping us build our project, it does a lot more than just packaging it.<br />
+You probably used a few of its plugins. Failsafe and Surefire plugins are most commonly used ones explicitly. 
+But Maven is actually conceived with a plugin based architecture. Meaning everything you do with maven is running plugin.<br />
+Even the basic commands you use, like <code class="language-plaintext highlighter-rouge">mvn clean install</code> are actually using <code class="language-plaintext highlighter-rouge">clean</code> and <code class="language-plaintext highlighter-rouge">install</code> plugins. See <a href="https://maven.apache.org/plugins/index.html">here</a> for more details.
+This is what allows maven to expand its usage so easily.<br />
+You sometimes even use maven outside the build context, on your CI or deployment pipelines. <code class="language-plaintext highlighter-rouge">sonar-scanner</code> or <code class="language-plaintext highlighter-rouge">liquibase</code> plugins are good examples.</p>
+
+<p>If you want to develop your own plugin to add new features to maven and use it on your CI or deployment pipelines, the official <a href="https://maven.apache.org/plugin-developers/index.html">documentation</a> is always a good start.
+You might find some pages out of date. Maven is an open sourced project developed mainly by the community. While writing this post, I am also trying to update it. Please do the same.
+Also please have a look <a href="https://maven.apache.org/plugin-developers/common-bugs.html">here</a>, so you do not fell into common errors when starting with maven.</p>
+
+<h2 id="how-maven-works-">How Maven works ?</h2>
+<p>You probably all know but I will repeat for the sake of introduction, everything starts by defining our maven build writing a <code class="language-plaintext highlighter-rouge">pom.xml</code>.<br />
+We typically define the dependencies and resources we need to build our application, and the plugins/extensions we need part of our build process to do so.</p>
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;project</span> <span class="na">xmlns=</span><span class="s">"http://maven.apache.org/POM/4.0.0"</span> <span class="na">xmlns:xsi=</span><span class="s">"http://www.w3.org/2001/XMLSchema-instance"</span>
+         <span class="na">xsi:schemaLocation=</span><span class="s">"http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"</span>
+         <span class="na">child.project.url.inherit.append.path=</span><span class="s">..</span> <span class="nt">&gt;</span>
+<span class="nt">&lt;modelVersion/&gt;</span>
+
+    <span class="nt">&lt;groupId&gt;</span>com.example<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>my demo app<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;version&gt;</span>1.0.0<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;packaging&gt;</span>jar<span class="nt">&lt;/packaging&gt;</span>
+    
+    <span class="nt">&lt;name&gt;</span>maven-demo-app<span class="nt">&lt;/name&gt;</span>
+    <span class="nt">&lt;description&gt;</span>an example of pom configuration<span class="nt">&lt;/description&gt;</span>
+    
+    ...
+    <span class="nt">&lt;dependencies&gt;</span>
+        <span class="nt">&lt;dependency&gt;</span>
+            <span class="nt">&lt;groupId/&gt;</span>
+            <span class="nt">&lt;artifactId/&gt;</span>
+            <span class="nt">&lt;version/&gt;</span>
+        <span class="nt">&lt;/dependency&gt;</span>
+    <span class="nt">&lt;/dependencies&gt;</span>
+    ...
+
+    <span class="nt">&lt;build&gt;</span>
+        ...
+        <span class="nt">&lt;resources&gt;</span>
+            <span class="nt">&lt;resource&gt;</span>
+                <span class="nt">&lt;directory/&gt;</span>
+                <span class="nt">&lt;includes/&gt;</span>
+                <span class="nt">&lt;excludes/&gt;</span>
+            <span class="nt">&lt;/resource&gt;</span>
+        <span class="nt">&lt;/resources&gt;</span>
+       ...
+        <span class="nt">&lt;plugins&gt;</span>
+            <span class="nt">&lt;plugin&gt;</span>
+                <span class="nt">&lt;groupId/&gt;</span>
+                <span class="nt">&lt;artifactId/&gt;</span>
+                <span class="nt">&lt;version/&gt;</span>
+            <span class="nt">&lt;/plugin&gt;</span>
+        <span class="nt">&lt;/plugins&gt;</span>
+        ...
+        <span class="nt">&lt;extensions&gt;</span>
+            <span class="nt">&lt;extension&gt;</span>
+                <span class="nt">&lt;groupId/&gt;</span>
+                <span class="nt">&lt;artifactId/&gt;</span>
+                <span class="nt">&lt;version/&gt;</span>
+            <span class="nt">&lt;/extension&gt;</span>
+        <span class="nt">&lt;/extensions&gt;</span>
+    <span class="nt">&lt;/build&gt;</span>
+
+<span class="nt">&lt;/project&gt;</span>
+</code></pre></div></div>
+
+<p>See <a href="https://maven.apache.org/ref/3.9.6/maven-model/maven.html">here</a> for the full API.</p>
+
+<p>When we launch a maven command, typically on cli:</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> mvn <span class="nt">-help</span>
+usage: mvn <span class="o">[</span>options] <span class="o">[</span>&lt;goal<span class="o">(</span>s<span class="o">)&gt;]</span> <span class="o">[</span>&lt;phase<span class="o">(</span>s<span class="o">)&gt;]</span>
+</code></pre></div></div>
+<p>Maven will read our pom.xml to see what we want to do, depending on what <em>command</em> we have triggered.<br />
+A <strong>Goal</strong> is simply an action made available via a <strong>plugin</strong>.<br />
+A <strong>Phase</strong> is part of maven <strong>Lifecycle</strong>, and we can associate goals to a phase as we want.<br />
+So using Lifecycles and phases we can trigger multiple goals to achieve what we want. A detailed explanation on Lifecycles can be found <a href="https://maven.apache.org/ref/3.9.6/maven-core/lifecycles.html">here</a>.</p>
+
+<p>For example when we launch <code class="language-plaintext highlighter-rouge">mvn install</code>, maven will launch a list of phases in a specific order that are part of the default lifecycle, and the plugin goals associated to each phase (by default or specified in our POM).
+It will gather the sources and resources to build the classpath, compile the project, launch tests if any, package the app, and install it in our local repository.</p>
+
+<p>As usually does all package managers, maven uses repositories to:</p>
+<ul>
+  <li>Fetch the dependencies and plugins we need when building our own packages.</li>
+  <li>Deploy our application when packaged</li>
+</ul>
+
+<p>This is usually configured in a separate <a href="https://maven.apache.org/ref/3.9.6/maven-settings/settings.html">config</a>, 
+the <code class="language-plaintext highlighter-rouge">settings.xml</code> which is specific to each environment and not published on version control, since it contains credentials to access the repository servers and local configs.</p>
+
+<div class="important">
+    <div style="margin-left: 0.7em;">
+        <strong>Important:</strong>
+        <em>As we can understand from the above, there are multiple components interacting here to build our application. 
+        Maven’s core component is what orchestrates all this lifecycles logic, and each plugin is a separately packaged component.</em>
+    </div>
+</div>
+
+<hr />
+
+<h1 id="inside-maven">Inside Maven</h1>
+<p>Now that we have remembered how to use it, now lets get to the main subject and dig inside Maven to see how it works.</p>
+
+<h2 id="1-maven-core">1. Maven Core</h2>
+<p>Maven is a command line tool, written in java and packaged as an executable that will run using your JRE. <br />
+If you check the content of the <code class="language-plaintext highlighter-rouge">mvn</code> script that is actually launched when typing it on the cli, you will see that it is basically a bash script running a java process.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="nb">exec</span> <span class="s2">"</span><span class="nv">$JAVACMD</span><span class="s2">"</span> <span class="se">\</span>
+  <span class="nv">$MAVEN_OPTS</span> <span class="se">\</span>
+  <span class="nv">$MAVEN_DEBUG_OPTS</span> <span class="se">\</span>
+  <span class="nt">-classpath</span> <span class="s2">"</span><span class="k">${</span><span class="nv">CLASSWORLDS_JAR</span><span class="k">}</span><span class="s2">"</span> <span class="se">\</span>
+  <span class="s2">"-Dclassworlds.conf=</span><span class="k">${</span><span class="nv">MAVEN_HOME</span><span class="k">}</span><span class="s2">/bin/m2.conf"</span> <span class="se">\</span>
+  <span class="s2">"-Dmaven.home=</span><span class="k">${</span><span class="nv">MAVEN_HOME</span><span class="k">}</span><span class="s2">"</span> <span class="se">\</span>
+  <span class="s2">"-Dlibrary.jansi.path=</span><span class="k">${</span><span class="nv">MAVEN_HOME</span><span class="k">}</span><span class="s2">/lib/jansi-native"</span> <span class="se">\</span>
+  <span class="s2">"-Dmaven.multiModuleProjectDirectory=</span><span class="k">${</span><span class="nv">MAVEN_PROJECTBASEDIR</span><span class="k">}</span><span class="s2">"</span> <span class="se">\</span>
+  <span class="k">${</span><span class="nv">CLASSWORLDS_LAUNCHER</span><span class="k">}</span> <span class="k">${</span><span class="nv">MAVEN_ARGS</span><span class="k">}</span> <span class="s2">"</span><span class="nv">$@</span><span class="s2">"</span>
+
+</code></pre></div></div>
+
+<p>Without digging in too much details here, I will point you to the official documentation if you want further details.
+The following <a href="https://maven.apache.org/ref/3.9.6/">documentation</a> shows in details its internal components.</p>
+<p><img src="../assets/images/maven.drawio.png" /></p>
+<p>This is highly simplified version that shows only the main components that we will talk about.
+The <b style="color:steelblue">blue</b> boxes are the maven components and the <b style="color:sandybrown">orange</b> ones are external libraries used by maven.</p>
+
+<p>The <strong>Distribution</strong> is the full package we get when we download maven executables.</p>
+
+<p>The <strong>Core</strong> component is where we implement all the maven lifecycle and phase logic.
+It interacts with the other components to get the information necessary to build the lifecycles (maven and project settings, plugin settings ect.).<br />
+This is also where we have the Class Loader hierarchy and extensions setup for the maven lifecycles execution, which we will dig deeper further in this article.</p>
+
+<p>The <strong>PluginAPI</strong> is basically where we make the interface between the maven lifecycles and the goals to execute from the plugins. We are going to use this API to code our plugins so maven can use them.
+The <a href="https://maven.apache.org/ref/3.9.6/maven-core/index.html">core</a> component on the schema is the main application that will manage everything necessary for the build process defined in your pom.xml.<br />
+As you already guessed from the title of this article, we will talk in more details about this component further.</p>
+
+<p>The <strong>Settings</strong> components is basically what you set in your maven settings, ` ~/.m2/settings.xml` plus the settings overridden on the cli.</p>
+
+<p>The <strong>Resolver</strong> is a component for working with artifact repositories and dependency resolution. 
+It deals with the specification of local repository, remote repository, developer workspaces, artifact transports, and artifact resolution.</p>
+
+<p>The <strong>Model</strong> is basically your model for Maven POM (Project Object Model), where you define your project settings.</p>
+
+<p>The <strong>SISU</strong> components is where we manage the dependency injection of objects in maven plugins/extensions. It a crucial components in the plugin system, 
+and we must understand how it works in case we are building extensions.</p>
+
+<h2 id="2-maven-classloader-system">2. Maven Classloader system</h2>
+<p>I will repeat it probably multiple times, but It is why I love maven, so I won’t get tired of saying it: <em>maven is a plugin based system</em>.</p>
+
+<p>Lets quickly remind what is a classloader before explaining how maven uses it.<br />
+A <a href="https://en.wikipedia.org/wiki/Java_Classloader">ClassLoader</a> in java is a code that runs as part of the JRE, 
+and it is responsible for finding the class files necessary for the execution of the application and load them in the JVM.</p>
+
+<p>Maven uses a classloading hierarchy to separates the class-worlds of its core, and its plugins. What that means is that, 
+with this classloader hierarchy, we prevent exposing all the classes/packages used by the core, to the plugins.<br />
+This level of isolation allows maven to work securely while allowing its extension by third party plugins developed by mere human beings like me, and preventing I break everything in it.</p>
+<p><img src="../assets/images/maven-classWorlds.drawio.png" /></p>
+
+<p>Basically when booting maven, as we can see from the <code class="language-plaintext highlighter-rouge">mvn</code> script above, we launch the jar of the 
+<a href="https://codehaus-plexus.github.io/plexus-classworlds/">plexus-classworld</a> framework that is building this classLoader hierarchy, located in <code class="language-plaintext highlighter-rouge">${maven.home}/boot/plexus-classworlds-*.jar</code>.<br />
+This creates the <strong>System ClassLoader</strong>. Then the different classLoaders are built, maven core, project and plugin classLoaders (there are actually more than that, but we will simplify for an introduction).</p>
+
+<p>Content of this <strong>Core Classloader</strong> is configured in <code class="language-plaintext highlighter-rouge">${maven.home}/bin/m2.conf</code> and contains jars that constitutes a maven installation, located in <code class="language-plaintext highlighter-rouge">${maven.home}/lib/*.jar</code>. 
+This core class loader hosts both the public API of Maven and internal utility classes. Core extensions classloaders use Maven Core classloader as the parent and have access to both exported and internal Maven Core classes.</p>
+
+<p>We can add other elements to this class loader via <strong><a href="https://maven.apache.org/examples/maven-3-lifecycle-extensions.html">Core Extensions</a></strong>. 
+Those classes will be available for maven core component, and all the plugins in the project through the child classloader Maven API.
+We will talk more in details further how the extensions works. Each core extension is loaded in a separate classloader and there is no mechanism to share classes among core extensions.</p>
+
+<p>The child class loader, <strong>Maven API ClassLoader</strong>, can only access the public Maven API from the core class loader, 
+i.e. roughly only classes from the package org.apache.maven and its subpackages are available to the child class loader.</p>
+
+<p><strong>Project ClassLoader</strong> use Maven API classloader as the parent and import exported classes from project build extension realms. 
+In case a project uses no build extensions and hence has no need for a dedicated project class loader, this class loader will technically not be created.</p>
+
+<p>For each plugin used by a project, a <strong>Plugin ClassLoader</strong> is created as a child of the project class loader. If the project has no extensions and as such no project class loader, 
+the plugin class loader will be a direct child of the Maven API ClassLoader instead.</p>
+
+<p>A detailed documentation can be found <a href="https://maven.apache.org/guides/mini/guide-maven-classloading.html#Core_Classloader">here</a> on the official website.</p>
+
+<h2 id="3-maven-dependency-injection">3. Maven Dependency Injection</h2>
+<p>Maven uses <a href="https://projects.eclipse.org/projects/technology.sisu"><strong>SISU</strong></a>, which is a DI Container implementation based on the <a href="https://code.google.com/p/google-guice/">Google Guice</a>. 
+It allows using standard <a href="">JSR330 annotations</a> for declaring and injecting the objects we need in our classes.<br />
+The <a href="https://eclipse.github.io/sisu.plexus/">doc</a> here (that I have contributed) explains how to use the different annotations.</p>
+
+<p>It basically allows you to inject components in your Mojo like the following:</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">package</span> <span class="nn">org.apache.maven.plugins</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">javax.inject.Inject</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">org.apache.maven.plugin.AbstractMojo</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.maven.plugin.MojoExecutionException</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.maven.plugins.annotations.LifecyclePhase</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.maven.plugins.annotations.Mojo</span><span class="o">;</span>
+
+<span class="nd">@Mojo</span><span class="o">(</span> <span class="n">name</span> <span class="o">=</span> <span class="s">"hello"</span><span class="o">,</span> <span class="n">defaultPhase</span> <span class="o">=</span> <span class="nc">LifecyclePhase</span><span class="o">.</span><span class="na">VALIDATE</span><span class="o">,</span> <span class="n">requiresProject</span> <span class="o">=</span> <span class="kc">false</span> <span class="o">)</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyMojo</span> <span class="kd">extends</span> <span class="nc">AbstractMojo</span>
+<span class="o">{</span>
+
+    <span class="kd">private</span> <span class="nc">MyComponent</span> <span class="n">component</span><span class="o">;</span>
+
+    <span class="nd">@Inject</span>
+    <span class="kd">public</span> <span class="nf">MyMojo</span><span class="o">(</span> <span class="nc">MyComponent</span> <span class="n">component</span> <span class="o">)</span>
+    <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">component</span> <span class="o">=</span> <span class="n">component</span><span class="o">;</span>    
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">execute</span><span class="o">()</span>
+        <span class="kd">throws</span> <span class="nc">MojoExecutionException</span>
+    <span class="o">{</span>
+        <span class="n">component</span><span class="o">.</span><span class="na">hello</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>According to the documentation, in order to be able to use the <code class="language-plaintext highlighter-rouge">MyComponent</code>, we have to annotate it with JSR330.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Named</span>
+<span class="nd">@Singleton</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyComponent</span>
+    <span class="kd">implements</span> <span class="nc">Component</span>
+<span class="o">{</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<div class="alert">
+    <div style="margin-left: 0.7em;">
+        <!--<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16">
+            <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+        </svg>--> 
+        <strong>But</strong> I have discovered that it is also capable of injecting simple POJOs using their default constructor, even if the <code class="language-plaintext highlighter-rouge">@Named</code> or <code class="language-plaintext highlighter-rouge">@Singleton</code> annotations are not used.
+    </div>
+</div>
+
+<p>The official <a href="https://maven.apache.org/maven-jsr330.html">documentation</a> gives a brief introduction to how maven uses it, and what to do to make the annotations work if you want to use them in your plugin or extension.<br />
+The important thing to catch here, is the usage of the <a href="https://eclipse.org/sisu/docs/api/org.eclipse.sisu.mojos/">sisu-maven-plugin</a> in your project.  This will add your components to the index file so they are picked up by the SISU container.
+From the docs:</p>
+<blockquote>
+Enumerating the implementations means that no classpath scanning is required in runtime to find them, which keeps Maven's startup time fast. Note that our container is configured by default to only use the index. While this keeps things fast, if you use JSR-330 components in dependencies that do not contain an index, those implementations will currently not be discovered. This is a compromise that is reasonable given Maven is a command-line tool where startup speed is important.
+</blockquote>
+
+<p>If you are interested in injecting components in the container dynamically, I unfortunately no other documentation other than <a href="https://github.com/eclipse/sisu.plexus/issues/35">this</a> long issue I have filled myself.
+You can also take example of this <a href="https://github.com/HomeOfTheWizard/spring-bridge-maven-plugin">plugin</a> I have developped to achieve the same.</p>
+
+<h2 id="4-maven-plugins">4. Maven Plugins</h2>
+<p>When we execute a goal in maven, this points to a plugin’s code. Plugins consists of one or more <strong>Mojos</strong>, each one being the implementation for one of the plugin’s goals.
+A Mojo is basically the API to use when coding your plugin, so that maven can use it.
+I will not go into too much details here since there are already hundreds of articles/posts online, 
+including the <a href="https://maven.apache.org/ref/3.9.6/maven-plugin-api/index.html">official documentation</a>, describing how to create a Mojo, build and package your plugin.</p>
+
+<h2 id="5-maven-extensions">5. Maven Extensions</h2>
+<p>Extensions are basically a way to add new features to maven core or to your project build lifecycle, by adding new classes to the different class loaders explained above. 
+This allows us to insert code that will impact multiple plugins at once.</p>
+
+<p>There are two types of extensions:</p>
+<ol>
+  <li><strong>Core extensions</strong> are loaded as part of Maven runtime startup and disposed of as part of Maven runtime shutdown.</li>
+  <li><strong>Build extensions</strong> are loaded lazily during the build of your project.</li>
+</ol>
+
+<p>Difference between late and early registration refers to which class-world will it be part of. Early registration simply means that the extension will be used when maven core bootstraps. Late registration means that the extension will be used only after maven core is launched, our project model is built and our the built lifecycle has begun.</p>
+
+<h3 id="51-core-extensions">5.1. Core Extensions</h3>
+<p>Core Extensions is a new mechanism introduced in Maven 3.3.0 which allows additional components to be loaded into Maven Core as part of a build session.
+As already seen above, each core extension is loaded in a separate classloader and there is no mechanism to share classes among core extensions. Core extensions classloaders use Maven Core classloader as the parent and have access to both exported and internal Maven Core classes.</p>
+
+<p>From the <a href="https://maven.apache.org/guides/mini/guide-using-extensions.html">official documentation</a>:</p>
+<blockquote>
+The mechanism allows extensions to either replace default Sisu components with custom ones or add new components which are used at run time. In addition one could also expose additional packages from the Core Classloader.
+</blockquote>
+
+<p>What I want to highlight here is the mention: <em>“one could also expose additional packages from the Core Classloader”.</em><br />
+Core extension can use <a href="https://maven.apache.org/ref/3.9.0/maven-core/core-extensions.html">META-INF/maven/extension.xml</a> descriptor (which declares what packages are exported from maven core to extensions) 
+to declare packages and artifacts exported by the extension. If the descriptor is not present, no packages or artifacts are exported, but the extension can still contribute components to Maven Core extension points.</p>
+
+<p>Core extensions are configured in <code class="language-plaintext highlighter-rouge">${maven.projectBasedir}/.mvn/extensions.xml</code> configuration file.</p>
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+<span class="nt">&lt;extensions&gt;</span>
+  <span class="nt">&lt;extension&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>...<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>...<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;version&gt;</span>...<span class="nt">&lt;/version&gt;</span>
+  <span class="nt">&lt;/extension&gt;</span>
+  <span class="nt">&lt;extension&gt;</span>...<span class="nt">&lt;/extension&gt;</span>
+  ...
+<span class="nt">&lt;/extensions&gt;</span>
+</code></pre></div></div>
+
+<h3 id="52-build-extensions">5.2. Build Extensions</h3>
+<p>From the <a href="https://maven.apache.org/pom.html#Extensions">docs</a>:</p>
+<blockquote>
+Extensions are a list of artifacts that are to be used in this build. They will be included in the running build's classpath. 
+They can enable extensions to the build process (such as add an ftp provider for the Wagon transport mechanism), as well as make plugins active which make changes to the build lifecycle. 
+In short, extensions are artifacts that activated during build. The extensions do not have to actually do anything nor contain a Mojo. 
+For this reason, extensions are excellent for specifying one out of multiple implementations of a common plugin interface.
+</blockquote>
+
+<p>Those extensions are typically used to enable Wagon providers, used for the transport of artifact between repositories, and plug-ins which provide lifecycle enhancements.  <br />
+Example:</p>
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;build&gt;</span>
+    <span class="nt">&lt;extensions&gt;</span>
+      <span class="nt">&lt;extension&gt;</span>
+        <span class="nt">&lt;groupId&gt;</span>org.apache.maven.wagon<span class="nt">&lt;/groupId&gt;</span>
+         <span class="nt">&lt;artifactId&gt;</span>wagon-ftp<span class="nt">&lt;/artifactId&gt;</span>
+         <span class="nt">&lt;version&gt;</span>2.10<span class="nt">&lt;/version&gt;</span>
+      <span class="nt">&lt;/extension&gt;</span>
+    <span class="nt">&lt;/extensions&gt;</span>
+  <span class="nt">&lt;/build&gt;</span>
+</code></pre></div></div>
+<p>Build extensions are registered (late registration) via your <code class="language-plaintext highlighter-rouge">pom.xml</code>. Examples can be found <a href="https://maven.apache.org/guides/mini/guide-using-extensions.html#build-extension">here</a></p>
+
+<hr />
+
+<h1 id="recap">RECAP</h1>
+<p>In this post I have tried to cover all the core components and internal mechanisms in maven that I found important to understand for a developer who wants to contribute to maven with a plugin or extension.</p>
+
+<p>The distinction and interaction between the <strong>Core and the Plugin API</strong> is an important point to understand when we want to pinpoint which component we need to target for a new feature or fix.<br />
+The <strong>Classloader system</strong> is what builds the boundaries between the core and plugins. Its understanding is crucial in order to prevent hours wasted trying to build our new project.<br />
+Finally, the <strong>SISU</strong> container, which is at the core of maven, is and important component to understand if we want to build reusable components and build transverse features.</p>
+
+<p>Hope that helps you in your journey. Next post will probably be on the maven core. Stay tuned ! 🖖</p>
+
+<hr />
+
+<h1>Appendix: References</h1>
+
+<p>https://maven.apache.org/what-is-maven.html
+https://maven.apache.org/plugins/index.html
+https://maven.apache.org/plugin-developers/index.html
+https://maven.apache.org/plugin-developers/common-bugs.html
+https://en.wikipedia.org/wiki/Java_Classloader
+https://maven.apache.org/guides/mini/guide-maven-classloading.html#Core_Classloader
+http://takari.io/book/91-maven-classloading.html
+https://cwiki.apache.org/confluence/display/MAVEN/Maven+3.x+Class+Loading
+https://eclipse.github.io/sisu.plexus/
+https://developer.okta.com/blog/2019/09/23/tutorial-build-a-maven-plugin
+https://maven.apache.org/guides/mini/guide-using-extensions.html</p>]]></content><author><name>Özgün ÖZ</name></author><category term="development" /><category term="java" /><summary type="html"><![CDATA[Deep dive into maven’s internals to help the development of plugins]]></summary></entry></feed>

@@ -16,22 +16,23 @@
         
         <pubDate>Wed, 30 Aug 2023 12:18:00 +0200</pubDate>
         <link>
-        /secrets-in-java</link>
-        <guid isPermaLink="true">/secrets-in-java</guid>
+        /secrets_in_java</link>
+        <guid isPermaLink="true">/secrets_in_java</guid>
       </item>
       
     
       
       <item>
-        <title>Understanding Maven core for plugin Development</title>
+        <title>Understanding Maven for plugin Development</title>
         
-          <description>&lt;p&gt;Deep dive into maven’s dependency management and classloader system to help the development of plugins&lt;/p&gt;
+          <description>&lt;p&gt;Deep dive into maven’s internals to help the development of plugins&lt;/p&gt;
+
 </description>
         
         <pubDate>Wed, 30 Aug 2023 12:18:00 +0200</pubDate>
         <link>
-        /maven_sisu</link>
-        <guid isPermaLink="true">/maven_sisu</guid>
+        /maven_plugin_development</link>
+        <guid isPermaLink="true">/maven_plugin_development</guid>
       </item>
       
     
