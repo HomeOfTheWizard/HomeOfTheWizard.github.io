@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.3">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2024-04-06T14:50:35+02:00</updated><id>/feed.xml</id><title type="html">Özgün ÖZ</title><subtitle>Fullstack Developer, Msc. Computer Engineer</subtitle><entry><title type="html">How to handle Secrets in Java</title><link href="/secrets_in_java" rel="alternate" type="text/html" title="How to handle Secrets in Java" /><published>2023-08-30T12:18:00+02:00</published><updated>2023-08-30T12:18:00+02:00</updated><id>/secrets_in_java</id><content type="html" xml:base="/secrets_in_java"><![CDATA[<p>This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.3">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2024-04-14T14:24:42+02:00</updated><id>/feed.xml</id><title type="html">Özgün ÖZ</title><subtitle>Fullstack Developer, Msc. Computer Engineer</subtitle><entry><title type="html">How to handle Secrets in Java</title><link href="/secrets_in_java" rel="alternate" type="text/html" title="How to handle Secrets in Java" /><published>2023-08-30T12:18:00+02:00</published><updated>2023-08-30T12:18:00+02:00</updated><id>/secrets_in_java</id><content type="html" xml:base="/secrets_in_java"><![CDATA[<p>This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.</p>
 
 <p>All modern production applications have some parameters/configurations to allow maximum flexibility of its execution. 
 There are different ways to manage those parameters, as there are different type of parameters, 
@@ -582,13 +582,14 @@ This is the first stage (granule selection) of ClickHouse query execution.
 In the second stage (data reading), ClickHouse is locating the selected granules in order to stream all their rows into the ClickHouse engine in order to find the rows that are actually matching the query.</p>
 
 <p>In ClickHouse the physical locations of all granules for our table are stored in mark files. Similar to data files, there is one mark file per table column.
-We have discussed how the primary index is a flat uncompressed array file (primary.idx), containing index marks that are numbered starting at 0.
+The primary index is a flat uncompressed array file (primary.idx), containing index marks that are numbered starting at 0.
 Similarly, a mark file is also a flat uncompressed array file (*.mrk) containing marks that are numbered starting at 0.
+The binary data file contains the actual data, but in a compressed format.
 Once ClickHouse has identified and selected the index mark for a granule that can possibly contain matching rows for a query, a positional array lookup can be performed in the mark files in order to obtain the physical locations of the granule.</p>
 
 <p>Each mark file entry for a specific column is storing two locations in the form of offsets:
-The first offset (‘block_offset’ in the diagram above) is locating the block in the compressed column data file that contains the compressed version of the selected granule. This compressed block potentially contains a few compressed granules. The located compressed file block is uncompressed into the main memory on read.
-The second offset (‘granule_offset’ in the diagram above) from the mark-file provides the location of the granule within the uncompressed block data.
+The first offset (‘block_offset’) is locating the block in the compressed column data file that contains the compressed version of the selected granule. This compressed block potentially contains a few compressed granules. The located compressed file block is uncompressed into the main memory on read.
+The second offset (‘granule_offset’) from the mark-file provides the location of the granule within the uncompressed block data.
 Because compressed blocks contains data for multiple granules.</p>
 
 <p>All the 8192 rows belonging to the located uncompressed granule are then streamed into ClickHouse for further processing.</p>
@@ -618,7 +619,7 @@ https://clickhouse.com/docs/en/optimize/sparse-primary-indexes#an-index-design-f
 
 <p>This will be probably the first post of a series about how maven works and how to contribute to its ecosystem.<br />
 In this post, I will talk about the core components and internal mechanism of maven that developers should know if they want to develop plugins.
-While developing my first plugins I have had a hard time to find all information in details in the documentations. I even ended up contributing to the maven documentations.
+While developing my first plugins I have had a hard time to find all information in details in the documentation. I even ended up contributing to the maven documentation.
 So the idea here is to give you important headlines and an introduction to the core features, and pointing you to detailed documentation links if you want to go further.</p>
 
 <h1 id="quick-reminder">Quick reminder</h1>
@@ -628,11 +629,11 @@ You probably used a few of its plugins. Failsafe and Surefire plugins are most c
 But Maven is actually conceived with a plugin based architecture. Meaning everything you do with maven is running plugin.<br />
 Even the basic commands you use, like <code class="language-plaintext highlighter-rouge">mvn clean install</code> are actually using <code class="language-plaintext highlighter-rouge">clean</code> and <code class="language-plaintext highlighter-rouge">install</code> plugins. See <a href="https://maven.apache.org/plugins/index.html">here</a> for more details.
 This is what allows maven to expand its usage so easily.<br />
-You sometimes even use maven outside the build context, on your CI or deployment pipelines. <code class="language-plaintext highlighter-rouge">sonar-scanner</code> or <code class="language-plaintext highlighter-rouge">liquibase</code> plugins are good examples.</p>
+You sometimes even use maven outside the build context, on your CI or deployment pipelines. <a href="https://docs.sonarsource.com/sonarqube/latest/analyzing-source-code/scanners/sonarscanner-for-maven/">sonar-scanner</a> or <a href="https://docs.liquibase.com/tools-integrations/maven/home.html">liquibase</a> plugins are good examples.</p>
 
 <p>If you want to develop your own plugin to add new features to maven and use it on your CI or deployment pipelines, the official <a href="https://maven.apache.org/plugin-developers/index.html">documentation</a> is always a good start.
 You might find some pages out of date. Maven is an open sourced project developed mainly by the community. While writing this post, I am also trying to update it. Please do the same.
-Also please have a look <a href="https://maven.apache.org/plugin-developers/common-bugs.html">here</a>, so you do not fell into common errors when starting with maven.</p>
+Also please have a look <a href="https://maven.apache.org/plugin-developers/common-bugs.html">here</a>, so you do not fall into common errors when starting with maven.</p>
 
 <h2 id="how-maven-works-">How Maven works ?</h2>
 <p>You probably all know but I will repeat for the sake of introduction, everything starts by defining our maven build writing a <code class="language-plaintext highlighter-rouge">pom.xml</code>.<br />
@@ -947,14 +948,14 @@ Finally, the <strong>SISU</strong> container, which is at the core of maven, is 
 
 <h1>Appendix: References</h1>
 
-<p>https://maven.apache.org/what-is-maven.html
-https://maven.apache.org/plugins/index.html
-https://maven.apache.org/plugin-developers/index.html
-https://maven.apache.org/plugin-developers/common-bugs.html
-https://en.wikipedia.org/wiki/Java_Classloader
-https://maven.apache.org/guides/mini/guide-maven-classloading.html#Core_Classloader
-http://takari.io/book/91-maven-classloading.html
-https://cwiki.apache.org/confluence/display/MAVEN/Maven+3.x+Class+Loading
-https://eclipse.github.io/sisu.plexus/
-https://developer.okta.com/blog/2019/09/23/tutorial-build-a-maven-plugin
+<p>https://maven.apache.org/what-is-maven.html<br />
+https://maven.apache.org/plugins/index.html<br />
+https://maven.apache.org/plugin-developers/index.html<br />
+https://maven.apache.org/plugin-developers/common-bugs.html<br />
+https://en.wikipedia.org/wiki/Java_Classloader<br />
+https://maven.apache.org/guides/mini/guide-maven-classloading.html#Core_Classloader<br />
+http://takari.io/book/91-maven-classloading.html<br />
+https://cwiki.apache.org/confluence/display/MAVEN/Maven+3.x+Class+Loading<br />
+https://eclipse.github.io/sisu.plexus/<br />
+https://developer.okta.com/blog/2019/09/23/tutorial-build-a-maven-plugin<br />
 https://maven.apache.org/guides/mini/guide-using-extensions.html</p>]]></content><author><name>Özgün ÖZ</name></author><category term="development" /><category term="java" /><summary type="html"><![CDATA[Deep dive into maven’s internals to help the development of plugins]]></summary></entry></feed>
