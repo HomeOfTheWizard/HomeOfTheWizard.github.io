@@ -177,7 +177,7 @@ into the {body} of the default.hbs template -->
 
 <p>This will be probably the first post of a series about how maven works and how to contribute to its ecosystem.<br />
 In this post, I will talk about the core components and internal mechanism of maven that developers should know if they want to develop plugins.
-While developing my first plugins I have had a hard time to find all information in details in the documentations. I even ended up contributing to the maven documentations.
+While developing my first plugins I have had a hard time to find all information in details in the documentation. I even ended up contributing to the maven documentation.
 So the idea here is to give you important headlines and an introduction to the core features, and pointing you to detailed documentation links if you want to go further.</p>
 
 <h1 id="quick-reminder">Quick reminder</h1>
@@ -187,11 +187,11 @@ You probably used a few of its plugins. Failsafe and Surefire plugins are most c
 But Maven is actually conceived with a plugin based architecture. Meaning everything you do with maven is running plugin.<br />
 Even the basic commands you use, like <code class="language-plaintext highlighter-rouge">mvn clean install</code> are actually using <code class="language-plaintext highlighter-rouge">clean</code> and <code class="language-plaintext highlighter-rouge">install</code> plugins. See <a href="https://maven.apache.org/plugins/index.html">here</a> for more details.
 This is what allows maven to expand its usage so easily.<br />
-You sometimes even use maven outside the build context, on your CI or deployment pipelines. <code class="language-plaintext highlighter-rouge">sonar-scanner</code> or <code class="language-plaintext highlighter-rouge">liquibase</code> plugins are good examples.</p>
+You sometimes even use maven outside the build context, on your CI or deployment pipelines. <a href="https://docs.sonarsource.com/sonarqube/latest/analyzing-source-code/scanners/sonarscanner-for-maven/">sonar-scanner</a> or <a href="https://docs.liquibase.com/tools-integrations/maven/home.html">liquibase</a> plugins are good examples.</p>
 
 <p>If you want to develop your own plugin to add new features to maven and use it on your CI or deployment pipelines, the official <a href="https://maven.apache.org/plugin-developers/index.html">documentation</a> is always a good start.
 You might find some pages out of date. Maven is an open sourced project developed mainly by the community. While writing this post, I am also trying to update it. Please do the same.
-Also please have a look <a href="https://maven.apache.org/plugin-developers/common-bugs.html">here</a>, so you do not fell into common errors when starting with maven.</p>
+Also please have a look <a href="https://maven.apache.org/plugin-developers/common-bugs.html">here</a>, so you do not fall into common errors when starting with maven.</p>
 
 <h2 id="how-maven-works-">How Maven works ?</h2>
 <p>You probably all know but I will repeat for the sake of introduction, everything starts by defining our maven build writing a <code class="language-plaintext highlighter-rouge">pom.xml</code>.<br />
@@ -311,7 +311,9 @@ The <b style="color:steelblue">blue</b> boxes are the maven components and the <
 
 <p>The <strong>Core</strong> component is where we implement all the maven lifecycle and phase logic.
 It interacts with the other components to get the information necessary to build the lifecycles (maven and project settings, plugin settings ect.).<br />
-This is also where we have the Class Loader hierarchy and extensions setup for the maven lifecycles execution, which we will dig deeper further in this article.</p>
+This is also where we have the Class Loader hierarchy and extensions setup for the maven lifecycles execution, which we will dig deeper further in this article.
+The Core component is also contains an important subcomponent of maven that help us manage multi-module projects, the <a href="https://maven.apache.org/guides/mini/guide-multiple-modules.html">maven reactor</a>.
+Major improvements are done in this component in <a href="https://maven.apache.org/docs/4.0.0-alpha-4/release-notes.html">maven 4</a>.</p>
 
 <p>The <strong>PluginAPI</strong> is basically where we make the interface between the maven lifecycles and the goals to execute from the plugins. We are going to use this API to code our plugins so maven can use them.
 The <a href="https://maven.apache.org/ref/3.9.6/maven-core/index.html">core</a> component on the schema is the main application that will manage everything necessary for the build process defined in your pom.xml.<br />
@@ -326,6 +328,8 @@ It deals with the specification of local repository, remote repository, develope
 
 <p>The <strong>SISU</strong> components is where we manage the dependency injection of objects in maven plugins/extensions. It a crucial components in the plugin system, 
 and we must understand how it works in case we are building extensions.</p>
+
+<p>The <strong>Wagon Provider API</strong> defines a unified <a href="https://maven.apache.org/wagon/wagon-provider-api/">API</a>, for a <a href="https://maven.apache.org/wagon/index.html">transport abstraction</a> that is used in Maven’s artifact and repository handling code.</p>
 
 <h2 id="2-maven-classloader-system">2. Maven Classloader system</h2>
 <p>I will repeat it probably multiple times, but It is why I love maven, so I won’t get tired of saying it: <em>maven is a plugin based system</em>.</p>
@@ -506,16 +510,16 @@ Finally, the <strong>SISU</strong> container, which is at the core of maven, is 
 
 <h1>Appendix: References</h1>
 
-<p>https://maven.apache.org/what-is-maven.html
-https://maven.apache.org/plugins/index.html
-https://maven.apache.org/plugin-developers/index.html
-https://maven.apache.org/plugin-developers/common-bugs.html
-https://en.wikipedia.org/wiki/Java_Classloader
-https://maven.apache.org/guides/mini/guide-maven-classloading.html#Core_Classloader
-http://takari.io/book/91-maven-classloading.html
-https://cwiki.apache.org/confluence/display/MAVEN/Maven+3.x+Class+Loading
-https://eclipse.github.io/sisu.plexus/
-https://developer.okta.com/blog/2019/09/23/tutorial-build-a-maven-plugin
+<p>https://maven.apache.org/what-is-maven.html<br />
+https://maven.apache.org/plugins/index.html<br />
+https://maven.apache.org/plugin-developers/index.html<br />
+https://maven.apache.org/plugin-developers/common-bugs.html<br />
+https://en.wikipedia.org/wiki/Java_Classloader<br />
+https://maven.apache.org/guides/mini/guide-maven-classloading.html#Core_Classloader<br />
+http://takari.io/book/91-maven-classloading.html<br />
+https://cwiki.apache.org/confluence/display/MAVEN/Maven+3.x+Class+Loading<br />
+https://eclipse.github.io/sisu.plexus/<br />
+https://developer.okta.com/blog/2019/09/23/tutorial-build-a-maven-plugin<br />
 https://maven.apache.org/guides/mini/guide-using-extensions.html</p>
 
 
@@ -738,7 +742,6 @@ https://maven.apache.org/guides/mini/guide-using-extensions.html</p>
                 <section class="post-card-excerpt">
                     
                         <p>First article of the clickhouse 101 series. Lets deep dive into the underlying data structures and internal mechanisms of clickhouse.
-
 </p>
                     
                 </section>
@@ -757,7 +760,7 @@ https://maven.apache.org/guides/mini/guide-using-extensions.html</p>
                 <span class="reading-time">
                     
                     
-                      23 min read
+                      24 min read
                     
                 </span>
             </footer>

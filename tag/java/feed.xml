@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <feed xmlns="http://www.w3.org/2005/Atom" >
-  <generator uri="https://jekyllrb.com/" version="3.9.3">Jekyll</generator>
+  <generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator>
   <link href="/tag/java/feed.xml" rel="self" type="application/atom+xml" />
   <link href="/" rel="alternate" type="text/html" />
-  <updated>2024-04-06T14:50:35+02:00</updated>
+  <updated>2024-05-06T18:39:43+02:00</updated>
   <id>/tag/java/feed.xml</id>
 
   
@@ -41,7 +41,7 @@
 
 &lt;p&gt;This will be probably the first post of a series about how maven works and how to contribute to its ecosystem.&lt;br /&gt;
 In this post, I will talk about the core components and internal mechanism of maven that developers should know if they want to develop plugins.
-While developing my first plugins I have had a hard time to find all information in details in the documentations. I even ended up contributing to the maven documentations.
+While developing my first plugins I have had a hard time to find all information in details in the documentation. I even ended up contributing to the maven documentation.
 So the idea here is to give you important headlines and an introduction to the core features, and pointing you to detailed documentation links if you want to go further.&lt;/p&gt;
 
 &lt;h1 id=&quot;quick-reminder&quot;&gt;Quick reminder&lt;/h1&gt;
@@ -51,11 +51,11 @@ You probably used a few of its plugins. Failsafe and Surefire plugins are most c
 But Maven is actually conceived with a plugin based architecture. Meaning everything you do with maven is running plugin.&lt;br /&gt;
 Even the basic commands you use, like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mvn clean install&lt;/code&gt; are actually using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;clean&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;install&lt;/code&gt; plugins. See &lt;a href=&quot;https://maven.apache.org/plugins/index.html&quot;&gt;here&lt;/a&gt; for more details.
 This is what allows maven to expand its usage so easily.&lt;br /&gt;
-You sometimes even use maven outside the build context, on your CI or deployment pipelines. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sonar-scanner&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;liquibase&lt;/code&gt; plugins are good examples.&lt;/p&gt;
+You sometimes even use maven outside the build context, on your CI or deployment pipelines. &lt;a href=&quot;https://docs.sonarsource.com/sonarqube/latest/analyzing-source-code/scanners/sonarscanner-for-maven/&quot;&gt;sonar-scanner&lt;/a&gt; or &lt;a href=&quot;https://docs.liquibase.com/tools-integrations/maven/home.html&quot;&gt;liquibase&lt;/a&gt; plugins are good examples.&lt;/p&gt;
 
 &lt;p&gt;If you want to develop your own plugin to add new features to maven and use it on your CI or deployment pipelines, the official &lt;a href=&quot;https://maven.apache.org/plugin-developers/index.html&quot;&gt;documentation&lt;/a&gt; is always a good start.
 You might find some pages out of date. Maven is an open sourced project developed mainly by the community. While writing this post, I am also trying to update it. Please do the same.
-Also please have a look &lt;a href=&quot;https://maven.apache.org/plugin-developers/common-bugs.html&quot;&gt;here&lt;/a&gt;, so you do not fell into common errors when starting with maven.&lt;/p&gt;
+Also please have a look &lt;a href=&quot;https://maven.apache.org/plugin-developers/common-bugs.html&quot;&gt;here&lt;/a&gt;, so you do not fall into common errors when starting with maven.&lt;/p&gt;
 
 &lt;h2 id=&quot;how-maven-works-&quot;&gt;How Maven works ?&lt;/h2&gt;
 &lt;p&gt;You probably all know but I will repeat for the sake of introduction, everything starts by defining our maven build writing a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pom.xml&lt;/code&gt;.&lt;br /&gt;
@@ -175,7 +175,9 @@ The &lt;b style=&quot;color:steelblue&quot;&gt;blue&lt;/b&gt; boxes are the mave
 
 &lt;p&gt;The &lt;strong&gt;Core&lt;/strong&gt; component is where we implement all the maven lifecycle and phase logic.
 It interacts with the other components to get the information necessary to build the lifecycles (maven and project settings, plugin settings ect.).&lt;br /&gt;
-This is also where we have the Class Loader hierarchy and extensions setup for the maven lifecycles execution, which we will dig deeper further in this article.&lt;/p&gt;
+This is also where we have the Class Loader hierarchy and extensions setup for the maven lifecycles execution, which we will dig deeper further in this article.
+The Core component is also contains an important subcomponent of maven that help us manage multi-module projects, the &lt;a href=&quot;https://maven.apache.org/guides/mini/guide-multiple-modules.html&quot;&gt;maven reactor&lt;/a&gt;.
+Major improvements are done in this component in &lt;a href=&quot;https://maven.apache.org/docs/4.0.0-alpha-4/release-notes.html&quot;&gt;maven 4&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;The &lt;strong&gt;PluginAPI&lt;/strong&gt; is basically where we make the interface between the maven lifecycles and the goals to execute from the plugins. We are going to use this API to code our plugins so maven can use them.
 The &lt;a href=&quot;https://maven.apache.org/ref/3.9.6/maven-core/index.html&quot;&gt;core&lt;/a&gt; component on the schema is the main application that will manage everything necessary for the build process defined in your pom.xml.&lt;br /&gt;
@@ -190,6 +192,8 @@ It deals with the specification of local repository, remote repository, develope
 
 &lt;p&gt;The &lt;strong&gt;SISU&lt;/strong&gt; components is where we manage the dependency injection of objects in maven plugins/extensions. It a crucial components in the plugin system, 
 and we must understand how it works in case we are building extensions.&lt;/p&gt;
+
+&lt;p&gt;The &lt;strong&gt;Wagon Provider API&lt;/strong&gt; defines a unified &lt;a href=&quot;https://maven.apache.org/wagon/wagon-provider-api/&quot;&gt;API&lt;/a&gt;, for a &lt;a href=&quot;https://maven.apache.org/wagon/index.html&quot;&gt;transport abstraction&lt;/a&gt; that is used in Maven’s artifact and repository handling code.&lt;/p&gt;
 
 &lt;h2 id=&quot;2-maven-classloader-system&quot;&gt;2. Maven Classloader system&lt;/h2&gt;
 &lt;p&gt;I will repeat it probably multiple times, but It is why I love maven, so I won’t get tired of saying it: &lt;em&gt;maven is a plugin based system&lt;/em&gt;.&lt;/p&gt;
@@ -370,16 +374,16 @@ Finally, the &lt;strong&gt;SISU&lt;/strong&gt; container, which is at the core o
 
 &lt;h1&gt;Appendix: References&lt;/h1&gt;
 
-&lt;p&gt;https://maven.apache.org/what-is-maven.html
-https://maven.apache.org/plugins/index.html
-https://maven.apache.org/plugin-developers/index.html
-https://maven.apache.org/plugin-developers/common-bugs.html
-https://en.wikipedia.org/wiki/Java_Classloader
-https://maven.apache.org/guides/mini/guide-maven-classloading.html#Core_Classloader
-http://takari.io/book/91-maven-classloading.html
-https://cwiki.apache.org/confluence/display/MAVEN/Maven+3.x+Class+Loading
-https://eclipse.github.io/sisu.plexus/
-https://developer.okta.com/blog/2019/09/23/tutorial-build-a-maven-plugin
+&lt;p&gt;https://maven.apache.org/what-is-maven.html&lt;br /&gt;
+https://maven.apache.org/plugins/index.html&lt;br /&gt;
+https://maven.apache.org/plugin-developers/index.html&lt;br /&gt;
+https://maven.apache.org/plugin-developers/common-bugs.html&lt;br /&gt;
+https://en.wikipedia.org/wiki/Java_Classloader&lt;br /&gt;
+https://maven.apache.org/guides/mini/guide-maven-classloading.html#Core_Classloader&lt;br /&gt;
+http://takari.io/book/91-maven-classloading.html&lt;br /&gt;
+https://cwiki.apache.org/confluence/display/MAVEN/Maven+3.x+Class+Loading&lt;br /&gt;
+https://eclipse.github.io/sisu.plexus/&lt;br /&gt;
+https://developer.okta.com/blog/2019/09/23/tutorial-build-a-maven-plugin&lt;br /&gt;
 https://maven.apache.org/guides/mini/guide-using-extensions.html&lt;/p&gt;</content>
 
       
@@ -633,7 +637,7 @@ Kubernetes has even a HashiCorp Vault &lt;a href=&quot;https://www.vaultproject.
 &lt;p&gt;&lt;img src=&quot;../assets/images/hashicorp_jenkins_kubernetes.png&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Plus, this option has the advantage of being able to put all the configurations related to your application to version control (recommended by the &lt;a href=&quot;https://7factorconfig.org/&quot;&gt;7 factor config&lt;/a&gt;).
-The only thing to manage in the execution environment is the credentials to access to Vault.&lt;/p&gt;
+The only thing to manage in the execution environment is the credentials to access to Vault. Vault has several different integration tools with K8s, each having their pros and cons, discussed &lt;a href=&quot;https://www.hashicorp.com/blog/kubernetes-vault-integration-via-sidecar-agent-injector-vs-csi-provider&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h3&gt; Secrets injected directly into the JVM from Secret Manager &lt;/h3&gt;
 &lt;p&gt;If we compare the above methods:&lt;/p&gt;
