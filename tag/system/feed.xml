@@ -400,8 +400,9 @@ And the mark for this granule will be the mark0 in the .mrk file.&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;In ClickHouse the physical locations of all granules for our table are stored in mark files. Similar to data files, there is one mark file per table column.
-We have discussed how the primary index is a flat uncompressed array file (primary.idx), containing index marks that are numbered starting at 0.
+The primary index is a flat uncompressed array file (primary.idx), containing index marks that are numbered starting at 0.
 Similarly, a mark file is also a flat uncompressed array file (*.mrk) containing marks that are numbered starting at 0.
+The binary data file contains the actual data, but in a compressed format.
 Once ClickHouse has identified and selected the index mark for a granule that can possibly contain matching rows for a query, a positional array lookup can be performed in the mark files in order to obtain the physical locations of the granule.&lt;/p&gt;
 
 &lt;p&gt;Each mark file entry for a specific column is storing two locations in the form of offsets:&lt;/p&gt;
