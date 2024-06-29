@@ -35,8 +35,8 @@
     
     <!-- This tag outputs SEO meta+structured data and other important settings -->
     <meta name="description" content="Fullstack Developer, Msc. Computer Engineer" />
-    <link rel="shortcut icon" href="/assets/images/favicon.png" type="image/png" />
-    <link rel="canonical" href="/maven_plugin_development" />
+    <link rel="shortcut icon" href="http://localhost:4000/assets/images/favicon.png" type="image/png" />
+    <link rel="canonical" href="http://localhost:4000/maven_plugin_development" />
     <meta name="referrer" content="no-referrer-when-downgrade" />
 
      <!--title below is coming from _includes/dynamic_title-->
@@ -44,8 +44,8 @@
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Understanding Maven for plugin Development" />
     <meta property="og:description" content="Deep dive into maven’s internals to help the development of plugins This will be probably the first post of a series about how maven works and how to contribute to its ecosystem. In this post, I will talk about the core components and internal mechanism of maven that developers should" />
-    <meta property="og:url" content="/maven_plugin_development" />
-    <meta property="og:image" content="/assets/images/maven.png" />
+    <meta property="og:url" content="http://localhost:4000/maven_plugin_development" />
+    <meta property="og:image" content="http://localhost:4000/assets/images/maven.png" />
     <meta property="article:publisher" content="https://www.facebook.com/ghost" />
     <meta property="article:author" content="https://www.facebook.com/ghost" />
     <meta property="article:published_time" content="2023-08-30T12:18:00+02:00" />
@@ -54,8 +54,8 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Understanding Maven for plugin Development" />
     <meta name="twitter:description" content="Deep dive into maven’s internals to help the development of plugins This will be probably the first post of a series about how maven works and how to contribute to its ecosystem. In this post, I will talk about the core components and internal mechanism of maven that developers should" />
-    <meta name="twitter:url" content="/" />
-    <meta name="twitter:image" content="/assets/images/maven.png" />
+    <meta name="twitter:url" content="http://localhost:4000/" />
+    <meta name="twitter:image" content="http://localhost:4000/assets/images/maven.png" />
     <meta name="twitter:label1" content="Written by" />
     <meta name="twitter:data1" content="Özgün ÖZ" />
     <meta name="twitter:label2" content="Filed under" />
@@ -72,18 +72,18 @@
     "publisher": {
         "@type": "Organization",
         "name": "Özgün ÖZ",
-        "logo": "/assets/images/blog-icon.png"
+        "logo": "http://localhost:4000/assets/images/blog-icon.png"
     },
-    "url": "/maven_plugin_development",
+    "url": "http://localhost:4000/maven_plugin_development",
     "image": {
         "@type": "ImageObject",
-        "url": "/assets/images/maven.png",
+        "url": "http://localhost:4000/assets/images/maven.png",
         "width": 2000,
         "height": 666
     },
     "mainEntityOfPage": {
         "@type": "WebPage",
-        "@id": "/maven_plugin_development"
+        "@id": "http://localhost:4000/maven_plugin_development"
     },
     "description": "Deep dive into maven’s internals to help the development of plugins This will be probably the first post of a series about how maven works and how to contribute to its ecosystem. In this post, I will talk about the core components and internal mechanism of maven that developers should"
 }
@@ -576,7 +576,7 @@ https://maven.apache.org/guides/mini/guide-using-extensions.html</p>
                     <div id="disqus_thread"></div>
                     <script>
                         var disqus_config = function () {
-                            var this_page_url = '/maven_plugin_development';
+                            var this_page_url = 'http://localhost:4000/maven_plugin_development';
                             var this_page_identifier = '/maven_plugin_development';
                             var this_page_title = 'Understanding Maven for plugin Development';
                         };
@@ -776,7 +776,7 @@ https://maven.apache.org/guides/mini/guide-using-extensions.html</p>
 <!-- Floating header which appears on-scroll, included from includes/floating-header.hbs -->
 <div class="floating-header">
     <div class="floating-header-logo">
-        <a href="/">
+        <a href="http://localhost:4000/">
             
                 <img src="/assets/images/favicon.png" alt="Özgün ÖZ icon" />
             
@@ -820,7 +820,7 @@ https://maven.apache.org/guides/mini/guide-using-extensions.html</p>
         <!-- The footer at the very bottom of the screen -->
         <footer class="site-footer outer">
             <div class="site-footer-content inner">
-                <section class="copyright"><a href="/">Özgün ÖZ</a> &copy; 2024</section>
+                <section class="copyright"><a href="http://localhost:4000/">Özgün ÖZ</a> &copy; 2024</section>
 
                 <nav class="site-footer-nav">
                     <a href="/">Latest Posts</a>
@@ -888,17 +888,16 @@ https://maven.apache.org/guides/mini/guide-using-extensions.html</p>
 
 
     <!-- Add Google Analytics  -->
-    <!-- Google Analytics Tracking code -->
- <script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-W7BHPYN5QX"></script>
+<script>
+ window.dataLayer = window.dataLayer || [];
+ function gtag(){dataLayer.push(arguments);}
+ gtag('js', new Date());
 
-  ga('create', 'G-W7BHPYN5QX', 'auto');
-  ga('send', 'pageview');
+ gtag('config', 'G-W7BHPYN5QX');
+</script>
 
- </script>
 
 
     <!-- The #block helper will pull in data from the #contentFor other template files. In this case, there's some JavaScript which we only want to use in post.hbs, but it needs to be included down here, after jQuery has already loaded. -->

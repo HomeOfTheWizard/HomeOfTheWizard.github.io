@@ -2,10 +2,10 @@
 
 <feed xmlns="http://www.w3.org/2005/Atom" >
   <generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator>
-  <link href="/tag/system/feed.xml" rel="self" type="application/atom+xml" />
-  <link href="/" rel="alternate" type="text/html" />
-  <updated>2024-05-06T18:39:43+02:00</updated>
-  <id>/tag/system/feed.xml</id>
+  <link href="http://localhost:4000/tag/system/feed.xml" rel="self" type="application/atom+xml" />
+  <link href="http://localhost:4000/" rel="alternate" type="text/html" />
+  <updated>2024-06-29T13:04:26+02:00</updated>
+  <id>http://localhost:4000/tag/system/feed.xml</id>
 
   
   
@@ -33,11 +33,11 @@
   
     <entry>
       <title type="html">Clickhouse 101 - Data Structures and internals</title>
-      <link href="/clickhouse101_1" rel="alternate" type="text/html" title="Clickhouse 101 - Data Structures and internals" />
+      <link href="http://localhost:4000/clickhouse101_1" rel="alternate" type="text/html" title="Clickhouse 101 - Data Structures and internals" />
       <published>2023-08-30T12:18:00+02:00</published>
       <updated>2023-08-30T12:18:00+02:00</updated>
-      <id>/clickhouse101_1</id>
-      <content type="html" xml:base="/clickhouse101_1">&lt;p&gt;First article of the clickhouse 101 series. Lets deep dive into the underlying data structures and internal mechanisms of clickhouse.&lt;/p&gt;
+      <id>http://localhost:4000/clickhouse101_1</id>
+      <content type="html" xml:base="http://localhost:4000/clickhouse101_1">&lt;p&gt;First article of the clickhouse 101 series. Lets deep dive into the underlying data structures and internal mechanisms of clickhouse.&lt;/p&gt;
 
 &lt;p&gt;Clickhouse is a DB that has a lot of potential and growing fast. Its use cases increase very rapidly as well. If you are into Data Analytics and Bigdata, you must explore it before too late.
 This series of articles are meant to give an easy introduction to clickhouse to mainly junior level engineers, but you will still find interesting content if you are more experienced. 
@@ -400,9 +400,8 @@ And the mark for this granule will be the mark0 in the .mrk file.&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;In ClickHouse the physical locations of all granules for our table are stored in mark files. Similar to data files, there is one mark file per table column.
-The primary index is a flat uncompressed array file (primary.idx), containing index marks that are numbered starting at 0.
+We have discussed how the primary index is a flat uncompressed array file (primary.idx), containing index marks that are numbered starting at 0.
 Similarly, a mark file is also a flat uncompressed array file (*.mrk) containing marks that are numbered starting at 0.
-The binary data file contains the actual data, but in a compressed format.
 Once ClickHouse has identified and selected the index mark for a granule that can possibly contain matching rows for a query, a positional array lookup can be performed in the mark files in order to obtain the physical locations of the granule.&lt;/p&gt;
 
 &lt;p&gt;Each mark file entry for a specific column is storing two locations in the form of offsets:&lt;/p&gt;
