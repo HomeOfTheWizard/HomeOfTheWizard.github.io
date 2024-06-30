@@ -2,10 +2,10 @@
 
 <feed xmlns="http://www.w3.org/2005/Atom" >
   <generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator>
-  <link href="http://localhost:4000/tag/system/feed.xml" rel="self" type="application/atom+xml" />
-  <link href="http://localhost:4000/" rel="alternate" type="text/html" />
-  <updated>2024-06-29T13:04:26+02:00</updated>
-  <id>http://localhost:4000/tag/system/feed.xml</id>
+  <link href="/tag/system/feed.xml" rel="self" type="application/atom+xml" />
+  <link href="/" rel="alternate" type="text/html" />
+  <updated>2024-06-30T22:46:17+02:00</updated>
+  <id>/tag/system/feed.xml</id>
 
   
   
@@ -33,11 +33,11 @@
   
     <entry>
       <title type="html">Clickhouse 101 - Data Structures and internals</title>
-      <link href="http://localhost:4000/clickhouse101_1" rel="alternate" type="text/html" title="Clickhouse 101 - Data Structures and internals" />
+      <link href="/clickhouse101_1" rel="alternate" type="text/html" title="Clickhouse 101 - Data Structures and internals" />
       <published>2023-08-30T12:18:00+02:00</published>
       <updated>2023-08-30T12:18:00+02:00</updated>
-      <id>http://localhost:4000/clickhouse101_1</id>
-      <content type="html" xml:base="http://localhost:4000/clickhouse101_1">&lt;p&gt;First article of the clickhouse 101 series. Lets deep dive into the underlying data structures and internal mechanisms of clickhouse.&lt;/p&gt;
+      <id>/clickhouse101_1</id>
+      <content type="html" xml:base="/clickhouse101_1">&lt;p&gt;First article of the clickhouse 101 series. Lets deep dive into the underlying data structures and internal mechanisms of clickhouse.&lt;/p&gt;
 
 &lt;p&gt;Clickhouse is a DB that has a lot of potential and growing fast. Its use cases increase very rapidly as well. If you are into Data Analytics and Bigdata, you must explore it before too late.
 This series of articles are meant to give an easy introduction to clickhouse to mainly junior level engineers, but you will still find interesting content if you are more experienced. 

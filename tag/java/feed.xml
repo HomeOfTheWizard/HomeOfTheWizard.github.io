@@ -2,10 +2,10 @@
 
 <feed xmlns="http://www.w3.org/2005/Atom" >
   <generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator>
-  <link href="http://localhost:4000/tag/java/feed.xml" rel="self" type="application/atom+xml" />
-  <link href="http://localhost:4000/" rel="alternate" type="text/html" />
-  <updated>2024-06-29T13:04:26+02:00</updated>
-  <id>http://localhost:4000/tag/java/feed.xml</id>
+  <link href="/tag/java/feed.xml" rel="self" type="application/atom+xml" />
+  <link href="/" rel="alternate" type="text/html" />
+  <updated>2024-06-30T22:46:17+02:00</updated>
+  <id>/tag/java/feed.xml</id>
 
   
   
@@ -33,11 +33,11 @@
   
     <entry>
       <title type="html">How to handle Secrets in Java</title>
-      <link href="http://localhost:4000/secrets_in_java" rel="alternate" type="text/html" title="How to handle Secrets in Java" />
+      <link href="/secrets_in_java" rel="alternate" type="text/html" title="How to handle Secrets in Java" />
       <published>2023-08-30T12:18:00+02:00</published>
       <updated>2023-08-30T12:18:00+02:00</updated>
-      <id>http://localhost:4000/secrets_in_java</id>
-      <content type="html" xml:base="http://localhost:4000/secrets_in_java">&lt;p&gt;This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.&lt;/p&gt;
+      <id>/secrets_in_java</id>
+      <content type="html" xml:base="/secrets_in_java">&lt;p&gt;This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.&lt;/p&gt;
 
 &lt;p&gt;All modern production applications have some parameters/configurations to allow maximum flexibility of its execution. 
 There are different ways to manage those parameters, as there are different type of parameters, 
@@ -311,15 +311,17 @@ https://docs.spring.io/spring-framework/reference/core/beans/annotation-config/v
   
     <entry>
       <title type="html">Understanding Maven for plugin Development</title>
-      <link href="http://localhost:4000/maven_plugin_development" rel="alternate" type="text/html" title="Understanding Maven for plugin Development" />
+      <link href="/maven_plugin_development" rel="alternate" type="text/html" title="Understanding Maven for plugin Development" />
       <published>2023-08-30T12:18:00+02:00</published>
       <updated>2023-08-30T12:18:00+02:00</updated>
-      <id>http://localhost:4000/maven_plugin_development</id>
-      <content type="html" xml:base="http://localhost:4000/maven_plugin_development">&lt;p&gt;Deep dive into maven’s internals to help the development of plugins&lt;/p&gt;
+      <id>/maven_plugin_development</id>
+      <content type="html" xml:base="/maven_plugin_development">&lt;p&gt;Deep dive into maven’s internals to help the development of plugins&lt;/p&gt;
 
-&lt;p&gt;This will be probably the first post of a series about how maven works and how to contribute to its ecosystem.&lt;br /&gt;
-In this post, I will talk about the core components and internal mechanism of maven that developers should know if they want to develop plugins.
-While developing my first plugins I have had a hard time to find all information in details in the documentation. I even ended up contributing to the maven documentation.
+&lt;p&gt;This will be probably the first post of a series about how maven works and how to contribute to its ecosystem. 
+In this post, I will talk about the core components and internal mechanism of maven that developers should know if they want to develop plugins.&lt;br /&gt;
+There are dozens of articles on the web that explains how to develop and use new custom maven plugins, like this &lt;a href=&quot;https://developer.okta.com/blog/2019/09/23/tutorial-build-a-maven-plugin&quot;&gt;one&lt;/a&gt;. 
+But if you want to go deeper and understand first the internals of maven, the best available source is the official documentation which is very detailed and technical, and scattered all around. 
+While developing my first plugins I have had a hard time to gather a big picture. 
 So the idea here is to give you important headlines and an introduction to the core features, and pointing you to detailed documentation links if you want to go further.&lt;/p&gt;
 
 &lt;h1 id=&quot;quick-reminder&quot;&gt;Quick reminder&lt;/h1&gt;

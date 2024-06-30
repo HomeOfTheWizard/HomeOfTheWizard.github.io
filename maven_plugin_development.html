@@ -35,8 +35,8 @@
     
     <!-- This tag outputs SEO meta+structured data and other important settings -->
     <meta name="description" content="Fullstack Developer, Msc. Computer Engineer" />
-    <link rel="shortcut icon" href="http://localhost:4000/assets/images/favicon.png" type="image/png" />
-    <link rel="canonical" href="http://localhost:4000/maven_plugin_development" />
+    <link rel="shortcut icon" href="/assets/images/favicon.png" type="image/png" />
+    <link rel="canonical" href="/maven_plugin_development" />
     <meta name="referrer" content="no-referrer-when-downgrade" />
 
      <!--title below is coming from _includes/dynamic_title-->
@@ -44,8 +44,8 @@
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Understanding Maven for plugin Development" />
     <meta property="og:description" content="Deep dive into maven’s internals to help the development of plugins This will be probably the first post of a series about how maven works and how to contribute to its ecosystem. In this post, I will talk about the core components and internal mechanism of maven that developers should" />
-    <meta property="og:url" content="http://localhost:4000/maven_plugin_development" />
-    <meta property="og:image" content="http://localhost:4000/assets/images/maven.png" />
+    <meta property="og:url" content="/maven_plugin_development" />
+    <meta property="og:image" content="/assets/images/maven.png" />
     <meta property="article:publisher" content="https://www.facebook.com/ghost" />
     <meta property="article:author" content="https://www.facebook.com/ghost" />
     <meta property="article:published_time" content="2023-08-30T12:18:00+02:00" />
@@ -54,8 +54,8 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Understanding Maven for plugin Development" />
     <meta name="twitter:description" content="Deep dive into maven’s internals to help the development of plugins This will be probably the first post of a series about how maven works and how to contribute to its ecosystem. In this post, I will talk about the core components and internal mechanism of maven that developers should" />
-    <meta name="twitter:url" content="http://localhost:4000/" />
-    <meta name="twitter:image" content="http://localhost:4000/assets/images/maven.png" />
+    <meta name="twitter:url" content="/" />
+    <meta name="twitter:image" content="/assets/images/maven.png" />
     <meta name="twitter:label1" content="Written by" />
     <meta name="twitter:data1" content="Özgün ÖZ" />
     <meta name="twitter:label2" content="Filed under" />
@@ -72,18 +72,18 @@
     "publisher": {
         "@type": "Organization",
         "name": "Özgün ÖZ",
-        "logo": "http://localhost:4000/assets/images/blog-icon.png"
+        "logo": "/assets/images/blog-icon.png"
     },
-    "url": "http://localhost:4000/maven_plugin_development",
+    "url": "/maven_plugin_development",
     "image": {
         "@type": "ImageObject",
-        "url": "http://localhost:4000/assets/images/maven.png",
+        "url": "/assets/images/maven.png",
         "width": 2000,
         "height": 666
     },
     "mainEntityOfPage": {
         "@type": "WebPage",
-        "@id": "http://localhost:4000/maven_plugin_development"
+        "@id": "/maven_plugin_development"
     },
     "description": "Deep dive into maven’s internals to help the development of plugins This will be probably the first post of a series about how maven works and how to contribute to its ecosystem. In this post, I will talk about the core components and internal mechanism of maven that developers should"
 }
@@ -175,9 +175,11 @@ into the {body} of the default.hbs template -->
                 <div class="kg-card-markdown">
                     <p>Deep dive into maven’s internals to help the development of plugins</p>
 
-<p>This will be probably the first post of a series about how maven works and how to contribute to its ecosystem.<br />
-In this post, I will talk about the core components and internal mechanism of maven that developers should know if they want to develop plugins.
-While developing my first plugins I have had a hard time to find all information in details in the documentation. I even ended up contributing to the maven documentation.
+<p>This will be probably the first post of a series about how maven works and how to contribute to its ecosystem. 
+In this post, I will talk about the core components and internal mechanism of maven that developers should know if they want to develop plugins.<br />
+There are dozens of articles on the web that explains how to develop and use new custom maven plugins, like this <a href="https://developer.okta.com/blog/2019/09/23/tutorial-build-a-maven-plugin">one</a>. 
+But if you want to go deeper and understand first the internals of maven, the best available source is the official documentation which is very detailed and technical, and scattered all around. 
+While developing my first plugins I have had a hard time to gather a big picture. 
 So the idea here is to give you important headlines and an introduction to the core features, and pointing you to detailed documentation links if you want to go further.</p>
 
 <h1 id="quick-reminder">Quick reminder</h1>
@@ -576,7 +578,7 @@ https://maven.apache.org/guides/mini/guide-using-extensions.html</p>
                     <div id="disqus_thread"></div>
                     <script>
                         var disqus_config = function () {
-                            var this_page_url = 'http://localhost:4000/maven_plugin_development';
+                            var this_page_url = '/maven_plugin_development';
                             var this_page_identifier = '/maven_plugin_development';
                             var this_page_title = 'Understanding Maven for plugin Development';
                         };
@@ -776,7 +778,7 @@ https://maven.apache.org/guides/mini/guide-using-extensions.html</p>
 <!-- Floating header which appears on-scroll, included from includes/floating-header.hbs -->
 <div class="floating-header">
     <div class="floating-header-logo">
-        <a href="http://localhost:4000/">
+        <a href="/">
             
                 <img src="/assets/images/favicon.png" alt="Özgün ÖZ icon" />
             
@@ -820,7 +822,7 @@ https://maven.apache.org/guides/mini/guide-using-extensions.html</p>
         <!-- The footer at the very bottom of the screen -->
         <footer class="site-footer outer">
             <div class="site-footer-content inner">
-                <section class="copyright"><a href="http://localhost:4000/">Özgün ÖZ</a> &copy; 2024</section>
+                <section class="copyright"><a href="/">Özgün ÖZ</a> &copy; 2024</section>
 
                 <nav class="site-footer-nav">
                     <a href="/">Latest Posts</a>
