@@ -4,7 +4,7 @@
   <generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator>
   <link href="/tag/development/feed.xml" rel="self" type="application/atom+xml" />
   <link href="/" rel="alternate" type="text/html" />
-  <updated>2024-06-30T22:46:17+02:00</updated>
+  <updated>2024-07-27T17:46:59+02:00</updated>
   <id>/tag/development/feed.xml</id>
 
   
@@ -447,7 +447,7 @@ If you check the content of the &lt;code class=&quot;language-plaintext highligh
 
 &lt;p&gt;Without digging in too much details here, I will point you to the official documentation if you want further details.
 The following &lt;a href=&quot;https://maven.apache.org/ref/3.9.6/&quot;&gt;documentation&lt;/a&gt; shows in details its internal components.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;../assets/images/maven.drawio.png&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../assets/images/maven-architecture.drawio.png&quot; /&gt;&lt;/p&gt;
 &lt;p&gt;This is highly simplified version that shows only the main components that we will talk about.
 The &lt;b style=&quot;color:steelblue&quot;&gt;blue&lt;/b&gt; boxes are the maven components and the &lt;b style=&quot;color:sandybrown&quot;&gt;orange&lt;/b&gt; ones are external libraries used by maven.&lt;/p&gt;
 
