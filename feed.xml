@@ -1,4 +1,272 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2024-07-27T17:46:59+02:00</updated><id>/feed.xml</id><title type="html">Özgün ÖZ</title><subtitle>Fullstack Developer, Msc. Computer Engineer</subtitle><entry><title type="html">Clickhouse 101 - Data Structures and internals</title><link href="/clickhouse101_1" rel="alternate" type="text/html" title="Clickhouse 101 - Data Structures and internals" /><published>2023-08-30T12:18:00+02:00</published><updated>2023-08-30T12:18:00+02:00</updated><id>/clickhouse101_1</id><content type="html" xml:base="/clickhouse101_1"><![CDATA[<p>First article of the clickhouse 101 series. Lets deep dive into the underlying data structures and internal mechanisms of clickhouse.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2024-07-29T12:46:30+02:00</updated><id>/feed.xml</id><title type="html">Özgün ÖZ</title><subtitle>Fullstack Developer, Msc. Computer Engineer</subtitle><entry><title type="html">How to handle Secrets in Java</title><link href="/secrets_in_java" rel="alternate" type="text/html" title="How to handle Secrets in Java" /><published>2023-08-30T12:18:00+02:00</published><updated>2023-08-30T12:18:00+02:00</updated><id>/secrets_in_java</id><content type="html" xml:base="/secrets_in_java"><![CDATA[<p>This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.</p>
+
+<p>All modern production applications have some parameters/configurations to allow maximum flexibility of its execution. 
+There are different ways to manage those parameters, as there are different type of parameters, 
+as there are different type of processes/applications that can run as on a Server. 
+We will cover all those type of parameters, for the scope of a java application, in detail further below this post. 
+The catch here is that the parameters of an application is usually managed separately than the code that will be packaged as the executable.<br />
+A good reading about the why’s and how’s is the post from <strong><a href="https://12factor.net/config">12 factor app</a></strong></p>
+
+<p>Many applications today manages some configuration/parameters that needs to be kept secret, aka <em>secrets</em>. 
+Sometimes it is the credentials to access a DB, some other times it is the key to encrypt a communication with another application. 
+Different from other parameter/config, these values must be stored and managed by the application carefully in order to prevent their leak.</p>
+
+<p>First lets see the different ways to pass application parameters in a java, then we will focus on the best practices to do so for secrets specifically.</p>
+
+<h1> Arguments ? Properties ? Variables ? </h1>
+<p>As a junior, or even an experienced developer you may sometimes confuse one for the other if you never had to deal with the subtle differences.
+We will cover all those in details, and have a resumé of differences at the end.</p>
+
+<h3>1. Program Arguments</h3>
+<p>Program arguments in java are the parameters you provide when running your java application. They are also called command-line arguments. Here is how you can use it:</p>
+
+<p>Lets say you have a main class like so;</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Echo</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span> <span class="o">(</span><span class="nc">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">for</span> <span class="o">(</span><span class="nc">String</span> <span class="nl">s:</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+            <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">s</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span></code></pre></figure>
+
+<p>Now, when you package your application as a jar, and you run it, you can pass arguments like so:</p>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell">java <span class="nt">-jar</span> MyApplication.jar paramStr1 paramStr2</code></pre></figure>
+
+<p>The arguments you pass after the jar file will be given to your main method as String parameters. <br />
+If you want to change the type of the argument, you need to parse or cast the String object.<br />
+Since we are talking about running our application in command line, only String parameters makes sense in that context.</p>
+
+<h3>2. JVM arguments</h3>
+<p>When we execute a java program from the command line, using the <code>java</code> executable from the JRE lib, we can pass multiple <em>Options</em> to the JVM. <br />
+The <code>java -jar</code> option is only one of them.</p>
+
+<p>It is easy to confuse them with Program arguments, since they are also sometimes called <em>JVM arguments</em>.
+Different from Program args, JVM args are passed to the JVM directly and are meant to modify its behaviour. The most known usage is to set the maximum Heap size <code>-Xmx</code> flag.</p>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell">java <span class="nt">-jar</span> <span class="nt">-Xmx</span><span class="o">=</span>2g MyApplication.jar paramStr1 paramStr2</code></pre></figure>
+
+<p>A full list of options for the Hotspot JVM is available <a href="https://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html">here</a> along the standard options that are general to all JVMs.</p>
+
+<h3>3. System Properties</h3>
+<p>A specific type of JVM argument allows you to set the properties of the JVM, called <a href="https://docs.oracle.com/javase/tutorial/essential/environment/sysprop.html">System Properties</a>. 
+Note that <code>-DsystemProperty1=myStrPropValue</code> below is a JVM argument given with the <code>-D</code> flag.</p>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell">java <span class="nt">-jar</span> <span class="nt">-DmySystemProperty</span><span class="o">=</span>mySysPropValue MyApplication.jar paramStr1 paramStr2</code></pre></figure>
+
+<p>Those properties are available from all applications and sub-processes running in the JVM execution. Some predefined properties gives info about the current execution context of your JVM. They can be used in a Java application like so:</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kt">var</span> <span class="n">sysProps</span> <span class="o">=</span> <span class="nc">System</span><span class="o">.</span><span class="na">getProperty</span><span class="o">();</span>
+<span class="kt">var</span> <span class="n">pathSeperator</span> <span class="o">=</span> <span class="n">sysProps</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">"path.separator"</span><span class="o">);</span>
+<span class="n">sysProps</span><span class="o">.</span><span class="na">setProperty</span><span class="o">(</span><span class="s">"myCustomProperty"</span><span class="o">,</span> <span class="err">"</span><span class="n">myPropertyValue</span><span class="o">);</span></code></pre></figure>
+
+<p>Beware that setting new Properties or overriding an existing one will be persistent only during the current execution of the JVM and will be deleted once JVM shuts down.
+System Properties, like all <a href="https://docs.oracle.com/en/java/javase/17/docs/api/index.html">Properties</a> objects are mere objects available in the Heap and their value is not persisted anywhere on the disk.</p>
+
+<h3>4. Environment Variables</h3>
+<p>Environment variables are nothing specific to Java. They are actually set outside the context of our JVM execution. 
+They are variables defined on the OS level and are available to all processes (unless we define availability constraints on them).
+They are available in all Linux based systems and Windows (with subtle differences). You can this <a href="https://en.wikipedia.org/wiki/Environment_variable">wiki page</a> or this <a href="https://www.twilio.com/blog/how-to-set-environment-variables.html">blog post</a> how to set them.</p>
+
+<p>We can access and use them in java applications like so:</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kt">var</span> <span class="n">envVars</span> <span class="o">=</span> <span class="nc">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">();</span>
+<span class="kt">var</span> <span class="n">shell</span> <span class="o">=</span> <span class="n">envVars</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">"SHELL"</span><span class="o">);</span>
+<span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"The current Shell type is: "</span> <span class="o">+</span> <span class="n">shell</span><span class="o">);</span>
+<span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"The current Operating System is: "</span> <span class="o">+</span> <span class="nc">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">(</span><span class="s">"OS"</span><span class="o">));</span></code></pre></figure>
+
+<p><em>Keep in mind that different platforms operate in different ways. E.g., on UNIX, Linux, and macOS, environment variables are case-sensitive, whereas on Microsoft Windows they are not.</em></p>
+
+<p><em>In a java application, we can use environment variables available to our JVM process. But Java does not have a standard way to modify its environment. This is a decision taken to make the language and application portable. and its design isolated from its execution environment.</em></p>
+
+<h3>5. Properties specific to Frameworks</h3>
+<p>If you are using spring or maven, you probably heard about things like (respectively) application properties or project properties.</p>
+
+<h6>Spring application properties</h6>
+<p>The best description comes from the official <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.external-config">docs</a>:</p>
+<blockquote>
+<p>Spring Boot lets you externalize your configuration so that you can work with the same application code in different environments. You can use a variety of external configuration sources including Java properties files, YAML files, environment variables, and command-line arguments.</p>
+<p>Property values can be injected directly into your beans by using the @Value annotation, accessed through Spring’s Environment abstraction, or be bound to structured objects through @ConfigurationProperties.</p>
+</blockquote>
+
+<p>As described above the @Value/@ConfigurationProperties annotations allow you to use these application parameters in your code. The most commonly used way of defining those parameters is an application.properties/.yaml file. But it is not the only way. Spring have multiple ways/places to define those properties and with an order of priority to allow overriding one defined in another. You can find the detailed list of hierarchy in the official documentation.  <br />
+One of them that you should not confuse with System properties, are spring program arguments. You can add application properties them from cli like so <code class="language-plaintext highlighter-rouge">java -jar mySpringApp.jar --someProperty=someValue</code> (see <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.external-config.command-line-args">here</a> for more details).</p>
+
+<p>The already explained configuration parameters like JVM arguments, system properties and environment variables can be sourced to define the spring application properties and used via the respective annotations.</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="nd">@Value</span><span class="o">(</span><span class="s">"#{systemEnvironment['MY_SECRET']}"</span><span class="o">)</span> <span class="c1">// via environment variables</span>
+<span class="kd">private</span> <span class="nc">String</span> <span class="n">s1</span><span class="o">;</span>
+
+<span class="nd">@Value</span><span class="o">(</span><span class="s">"#{systemProperties['myApp.mySystemProperty']}"</span><span class="o">)</span> <span class="c1">// via System properties passed in cli:  java -jar -DmyApp.mySystemProperty=someVal mySpringApp.jar </span>
+<span class="kd">private</span> <span class="nc">String</span> <span class="n">s2</span>
+
+<span class="nd">@Value</span><span class="o">(</span><span class="s">"${myApp.myAppProperty:aDefaultValue}"</span><span class="o">)</span> <span class="c1">// via application.property file or other PropertySource definition</span>
+<span class="kd">private</span> <span class="nc">String</span> <span class="n">s3</span><span class="o">;</span></code></pre></figure>
+
+<p>if you are using spring boot, you can directly use the following syntax to access env variables and system properties</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="nd">@Value</span><span class="o">(</span><span class="s">"${MY_SECRET:aDefaultValue}"</span><span class="o">)</span>
+<span class="kd">private</span> <span class="nc">String</span> <span class="n">s1</span><span class="o">;</span>
+<span class="nd">@Value</span><span class="o">(</span><span class="s">"${myJVM.mySystemProperty:aDefaultValue}"</span><span class="o">)</span>
+<span class="kd">private</span> <span class="nc">String</span> <span class="n">s2</span><span class="o">;</span></code></pre></figure>
+
+<p>Or a cleaner and simpler way, just define them in the same place as other application properties, like in your application.properties/.yaml file
+Then access those properties via the @Value annotation with a simpler expression.</p>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell">myApp.mySecretIndirect<span class="o">=</span><span class="k">${</span><span class="nv">MY_SECRET</span>:aDefaultValue<span class="k">}</span>
+myApp.mySysPropIndirect<span class="o">=</span><span class="k">${</span><span class="nv">myJVM</span><span class="p">.myProperty</span>:aDefaultValue<span class="k">}</span>
+myApp.myAppProperty<span class="o">=</span>SomeValue</code></pre></figure>
+
+<h6>Maven properties</h6>
+<p>Again from the official <a href="https://maven.apache.org/pom.html#properties">docs</a>:</p>
+<blockquote>
+<p>Maven properties are value placeholders, like properties in Ant. Their values are accessible anywhere within a POM by using the notation ${X}, where X is the property. Or they can be used by plugins as default values</p>
+</blockquote>
+
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;project&gt;</span>
+  ...
+  <span class="nt">&lt;properties&gt;</span>
+    <span class="nt">&lt;maven.compiler.source&gt;</span>1.7<span class="nt">&lt;/maven.compiler.source&gt;</span>
+    <span class="nt">&lt;maven.compiler.target&gt;</span>1.7<span class="nt">&lt;/maven.compiler.target&gt;</span>
+    <span class="c">&lt;!-- Following project.-properties are reserved for Maven in will become elements in a future POM definition. --&gt;</span>
+    <span class="c">&lt;!-- Don't start your own properties properties with project. --&gt;</span>
+    <span class="nt">&lt;project.build.sourceEncoding&gt;</span>UTF-8<span class="nt">&lt;/project.build.sourceEncoding&gt;</span> 
+    <span class="nt">&lt;project.reporting.outputEncoding&gt;</span>UTF-8<span class="nt">&lt;/project.reporting.outputEncoding&gt;</span>
+  <span class="nt">&lt;/properties&gt;</span>
+  ...
+<span class="nt">&lt;/project&gt;</span></code></pre></figure>
+
+<p>And again like the above spring properties, maven properties can as well be sourced from the basic java configuration parameters like JVM arguments, system properties and environment variables.<br />
+Once defined (like already explained above), you can use them with the below syntax.</p>
+
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;properties&gt;</span>
+    <span class="c">&lt;!-- environment variable --&gt;</span>
+    <span class="nt">&lt;myApp.githubPAT&gt;</span>${env.MY_GITHUB_PAT}<span class="nt">&lt;/myApp.githubPAT&gt;</span>
+    <span class="c">&lt;!-- JVM system properties --&gt;</span>
+    <span class="nt">&lt;myApp.javaPath&gt;</span>${java.home}<span class="nt">&lt;/myApp.javaPath&gt;</span>
+    <span class="nt">&lt;myApp.OS&gt;</span>${os.name}<span class="nt">&lt;/myApp.OS&gt;</span>
+    <span class="c">&lt;!-- JVM System properties , you can give custom ones on cli "mvn -DmyApp.logging.path=... clean install" and access them in pom like normal properties --&gt;</span>
+    <span class="nt">&lt;myApp.logging.file&gt;</span>${myApp.logging.path}/myApp.log<span class="nt">&lt;/myApp.logging.file&gt;</span>
+    <span class="c">&lt;!-- maven predefined properties --&gt;</span>
+    <span class="nt">&lt;myApp.execId&gt;</span>myApp-${maven.build.timestamp}<span class="nt">&lt;/myApp.execId&gt;</span>
+    <span class="nt">&lt;jacoco.unit.file&gt;</span>${project.build.directory}/jacoco-unit.exec<span class="nt">&lt;/jacoco.unit.file&gt;</span>
+    <span class="c">&lt;!-- user defined property --&gt;</span>
+    <span class="nt">&lt;version.jacoco&gt;</span>0.8.7<span class="nt">&lt;/version.jacoco&gt;</span>
+    <span class="nt">&lt;version.jacoco.plugin&gt;</span>${version.jacoco}<span class="nt">&lt;/version.jacoco.plugin&gt;</span>
+<span class="nt">&lt;/properties&gt;</span></code></pre></figure>
+
+<p>If you are interested in going more into the details of maven, the blog post <a href="./maven_sisu">here</a> is a good article to start with.</p>
+
+<h3>6. Resumé </h3>
+<p>If we take those words and analyse the literal meanings outside the scope of programming, we already have a hint of their differences.<br />
+<a href="https://en.wikipedia.org/wiki/Command-line_interface#Arguments">Arguments</a> ?  Short for “arguments of a command line expression”. <br />
+<a href="https://www.oxfordlearnersdictionaries.com/definition/american_english/property#:~:text=1%5Buncountable%5D%20a%20thing%20or,intellectual%20property%2C%20public%20property%20Thesaurus">Properties</a> ? They are values that defines something.<br />
+<a href="https://www.oxfordlearnersdictionaries.com/definition/english/variable_1?q=variable">Variables</a> ? Something that can change outside our will.</p>
+
+<ol>
+<li>Program Arguments: String Parameters we pass to our main method. Must be given set startup.</li> 
+<li>JVM Arguments: Options that affect how the JVM operates. Must be given set startup.</li> 
+<li>System Properties: Value/Keys available in every application running in the JVM. Can be set via command line, or by the code of the java application.</li>
+<li>Environment Variables: Values that are set outside the execution of the JVM and cannot be changed by the JVM.</li>
+</ol>
+
+<p><img src="../assets/images/JavaPropsVarsArgs.png" /></p>
+
+<h1> Secrets ?</h1>
+<p>Now lets get back to the focus element of this post. The credentials in our configuration, aka. secrets.
+There are different methods to give secret values as parameters to an application.</p>
+
+<h3> Basic and old way </h3>
+<p>Is to have the credentials stored in a configuration file, located only on a server we consider secure, and we limit all access to it. Like the production server.
+For applications that run directly on bare metal or VMs without orchestration, this is most often the chosen method.</p>
+
+<p>Just to give a glimpse of best practices used on non containerized environments, without diving into too much details since they are less and less used in modern systems,
+if you are using deployment tools like ansible, you can profit from features like <a href="https://docs.ansible.com/ansible/latest/vault_guide">Ansible Vault</a>.</p>
+
+<p><img src="../assets/images/hashicorp_ansible_jenkins_vm.png" /></p>
+
+<p>Ansible vault allows you to encrypt them with a key so your secret file that is encrypted may even be pushed on version control.
+It will then decrypt them on the fly during deployment.
+So only the decryption key is needed to be managed during the deployment and execution of the application.
+The encryption key is the real secret here and can be stored in your CI tool that will launch the deployments, or you can use a secret manager like <a href="https://www.vaultproject.io/">Hashicorp Vault</a> to keep your secrets.</p>
+
+<p>Application execution environments are considered as not secure since it is a place we do regular changes. Lots of ins and outs, difficult to track and secure.
+This is why key management applications, like HashiCorp Vault has come into being. Their only purpose is to store your secrets. They also allow you to keep your secrets in a central place without copy pasting it everywhere.<br />
+For example most CI tools, like jenkins have <a href="https://plugins.jenkins.io/hashicorp-vault-plugin/">plugins</a>, allowing to communicate with HashiCorp Vault to fetch your secrets during your pipeline execution instead of storing them on the CI server.</p>
+
+<div class="alert">
+    <div style="margin-left: 0.7em;">
+        <!--<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16">
+            <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+        </svg>--> 
+        Warning:
+        <em>The most secure way to manage secrets is to not persist them at all anywhere apart we consider secure.
+        Also, duplicating the places where you persist the secret widens the attack surface and increase the risk of leak of the secret.</em>
+    </div>
+</div>
+
+<h3> In containerized environments </h3>
+
+<p>When we want to leverage from the advantages of containers (such as flexible scalability) we usually run multiple instances of our application. Hence, the secrets must be available to all the instances.
+Most known Container Execution Environment Providers like Docker and Kubernetes has components (<a href="https://kubernetes.io/docs/concepts/configuration/secret/">etcd</a> for K8s) that are considered relatively secure to store the secrets for you, and make them available to all your instances.</p>
+
+<p>Kubernetes has even direct <a href="https://www.vaultproject.io/use-cases/kubernetes">integration</a> with HashiCorp Vault that allows fetching the secrets from Vault and injecting into the pods, instead of storing them in own DB (etcd).
+The only thing to manage in the execution environment is the credentials to access to Vault.</p>
+
+<p><img src="../assets/images/hashicorp_jenkins_kubernetes.png" /></p>
+
+<p>Vault has several different integration tools with K8s, each having their pros and cons, discussed <a href="https://www.hashicorp.com/blog/kubernetes-vault-integration-via-sidecar-agent-injector-vs-csi-provider">here</a>.<br />
+The key challenge when we have multiple instances, and we want to centralize the management of the secrets in a single component (vault), is to keep the secrets used by the instances fresh and in sync with vault.<br />
+Another challenge is about how the application will react to and handle a secret change. This is where framework specific solutions like <a href="https://cloud.spring.io/spring-cloud-vault/reference/html/">spring-cloud-vault</a> comes into play.</p>
+
+<p>Now all those options also differ in an important way, which is how do they make the secrets fetched from vault available to the application.</p>
+
+<h3> The use of secrets fetched from Secret Manager </h3>
+<p>Tools/solutions specific to kubernetes either share the secrets in a file or as environment variable to the application.</p>
+
+<p>Compared to bare-metal servers or VMs, containers have the advantage of being ephemeral which in turns makes the fact of having the secrets accessible on the execution environment a bit more secure.
+Making them accessible via environment variables, instead of a config file persisted on the FS, is considered relatively more secure.
+There are still some concerns about this approach in general ( <a href="https://www.cloudtruth.com/blog/the-pitfalls-of-using-environment-variables-for-config-and-secrets">one</a> or <a href="https://www.trendmicro.com/en_za/research/22/h/analyzing-hidden-danger-of-environment-variables-for-keeping-secrets.html">two</a> among other tones of discussion on platforms like stackexchange and stackoverflow, of blog posts are available on the net)</p>
+
+<p>Another problem about making the secrets available via plain text file or environment variable, is the <a href="https://www.cloudflare.com/learning/access-management/castle-and-moat-network-security/">castle and moat</a> problem.
+We can never be sure that our K8s cluster will not be accessed by an attacker. Hence, the importance of mutual TLS and emergence of zero-trust solutions like <a href="https://istio.io/latest/docs/concepts/security/">istio</a>.</p>
+
+<p>Frameworks like <a href="https://cloud.spring.io/spring-cloud-vault/reference/html/">spring-cloud-vault</a> or tools like <a href="https://homeofthewizard.github.io/vault-maven-plugin/">maven-vault-plugin</a> allows the JVM to fetch the secrets directly from the HashiCorp Vault. Your secrets are not persisted anywhere, but exists only in memory of your application.<br />
+They are pure Java solutions, so you do not have to install anything specific to the execution environment, hence can be used even in development environments.<br />
+Of course those solutions also have their downsides. Spring-cloud asks you to change your codebase and requires you to manage an additional config server, while vault-maven-plugin adds the overhead of a build tool to the execution of your app.</p>
+
+<h1> Résumé </h1>
+<p>Fist We have discussed how parameters in general are passed to a java application, as well as secrets.</p>
+
+<ul>
+  <li>Program Arguments</li>
+  <li>System Properties</li>
+  <li>Environment variables</li>
+</ul>
+
+<p>Then we have saw the importance of the usage of secret managers. Allowing us to centralise the management of our secrets and automate the integration with the different environments our application runs.</p>
+
+<p>Lastly we saw the different options we have when using the HashCorp vault secret manager, and pointed to the key challenges and important points to consider when choosing one.</p>
+
+<p><strong>Final words</strong>: There is no single solution that fits all. Every project has different requirements and priorities. So we have to consider the pros and cons of each solution to select the best for us.</p>
+
+<p>Hope all that was useful for you!</p>
+
+<hr />
+
+<h1> Appendix: References </h1>
+<p>https://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html  <br />
+https://docs.oracle.com/javase/tutorial/essential/environment/index.html<br />
+https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Properties.html  <br />
+https://7factorconfig.org/ <br />
+https://12factor.net/ <br />
+https://www.twilio.com/blog/working-with-environment-variables-in-java
+https://betterdev.blog/command-line-arguments-anatomy-explained/
+https://developer.hashicorp.com/vault/docs/agent-and-proxy/agent<br />
+https://security.stackexchange.com/questions/197784/is-it-unsafe-to-use-environmental-variables-for-secret-data<br />
+https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.external-config<br />
+https://docs.spring.io/spring-framework/reference/core/beans/annotation-config/value-annotations.html</p>]]></content><author><name>Özgün ÖZ</name></author><category term="development" /><category term="java" /><summary type="html"><![CDATA[This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.]]></summary></entry><entry><title type="html">Clickhouse 101 - Data Structures and internals</title><link href="/clickhouse101_1" rel="alternate" type="text/html" title="Clickhouse 101 - Data Structures and internals" /><published>2023-08-30T12:18:00+02:00</published><updated>2023-08-30T12:18:00+02:00</updated><id>/clickhouse101_1</id><content type="html" xml:base="/clickhouse101_1"><![CDATA[<p>First article of the clickhouse 101 series. Lets deep dive into the underlying data structures and internal mechanisms of clickhouse.</p>
 
 <p>Clickhouse is a DB that has a lot of potential and growing fast. Its use cases increase very rapidly as well. If you are into Data Analytics and Bigdata, you must explore it before too late.
 This series of articles are meant to give an easy introduction to clickhouse to mainly junior level engineers, but you will still find interesting content if you are more experienced. 
@@ -743,246 +1011,4 @@ http://takari.io/book/91-maven-classloading.html<br />
 https://cwiki.apache.org/confluence/display/MAVEN/Maven+3.x+Class+Loading<br />
 https://eclipse.github.io/sisu.plexus/<br />
 https://developer.okta.com/blog/2019/09/23/tutorial-build-a-maven-plugin<br />
-https://maven.apache.org/guides/mini/guide-using-extensions.html</p>]]></content><author><name>Özgün ÖZ</name></author><category term="development" /><category term="java" /><summary type="html"><![CDATA[Deep dive into maven’s internals to help the development of plugins]]></summary></entry><entry><title type="html">How to handle Secrets in Java</title><link href="/secrets_in_java" rel="alternate" type="text/html" title="How to handle Secrets in Java" /><published>2023-08-30T12:18:00+02:00</published><updated>2023-08-30T12:18:00+02:00</updated><id>/secrets_in_java</id><content type="html" xml:base="/secrets_in_java"><![CDATA[<p>This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.</p>
-
-<p>All modern production applications have some parameters/configurations to allow maximum flexibility of its execution. 
-There are different ways to manage those parameters, as there are different type of parameters, 
-as there are different type of processes/applications that can run as on a Server. 
-We will cover all those type of parameters, for the scope of a java application, in detail further below this post. 
-The catch here is that the parameters of an application is usually managed separately than the code that will be packaged as the executable.<br />
-A good reading about the why’s and how’s is the post from <strong><a href="https://12factor.net/config">12 factor app</a></strong></p>
-
-<p>Many applications today manages some configuration/parameters that needs to be kept secret, aka <em>secrets</em>. 
-Sometimes it is the credentials to access a DB, some other times it is the key to encrypt a communication with another application. 
-Different from other parameter/config, these values must be stored and managed by the application carefully in order to prevent their leak.</p>
-
-<p>First lets see the different ways to pass application parameters in a java, then we will focus on the best practices to do so for secrets specifically.</p>
-
-<h1> Arguments ? Properties ? Variables ? </h1>
-<p>As a junior, or even an experienced developer you may sometimes confuse one for the other if you never had to deal with the subtle differences.
-We will cover all those in details, and have a resumé of differences at the end.</p>
-
-<h3>1. Program Arguments</h3>
-<p>Program arguments in java are the parameters you provide when running your java application. They are also called command-line arguments. Here is how you can use it:</p>
-
-<p>Lets say you have a main class like so;</p>
-
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Echo</span> <span class="o">{</span>
-    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span> <span class="o">(</span><span class="nc">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">for</span> <span class="o">(</span><span class="nc">String</span> <span class="nl">s:</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
-            <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">s</span><span class="o">);</span>
-        <span class="o">}</span>
-    <span class="o">}</span>
-<span class="o">}</span></code></pre></figure>
-
-<p>Now, when you package your application as a jar, and you run it, you can pass arguments like so:</p>
-
-<figure class="highlight"><pre><code class="language-shell" data-lang="shell">java <span class="nt">-jar</span> MyApplication.jar paramStr1 paramStr2</code></pre></figure>
-
-<p>The arguments you pass after the jar file will be given to your main method as String parameters. <br />
-If you want to change the type of the argument, you need to parse or cast the String object.<br />
-Since we are talking about running our application in command line, only String parameters makes sense in that context.</p>
-
-<h3>2. JVM arguments</h3>
-<p>When we execute a java program from the command line, using the <code>java</code> executable from the JRE lib, we can pass multiple <em>Options</em> to the JVM. <br />
-The <code>java -jar</code> option is only one of them.</p>
-
-<p>It is easy to confuse them with Program arguments, since they are also sometimes called <em>JVM arguments</em>.
-Different from Program args, JVM args are passed to the JVM directly and are meant to modify its behaviour. The most known usage is to set the maximum Heap size <code>-Xmx</code> flag.</p>
-
-<figure class="highlight"><pre><code class="language-shell" data-lang="shell">java <span class="nt">-jar</span> <span class="nt">-Xmx</span><span class="o">=</span>2g MyApplication.jar paramStr1 paramStr2</code></pre></figure>
-
-<p>A full list of options for the Hotspot JVM is available <a href="https://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html">here</a> along the standard options that are general to all JVMs.</p>
-
-<h3>3. System Properties</h3>
-<p>A specific type of JVM argument allows you to set the properties of the JVM, called <a href="https://docs.oracle.com/javase/tutorial/essential/environment/sysprop.html">System Properties</a>. 
-Note that <code>-DsystemProperty1=myStrPropValue</code> below is a JVM argument given with the <code>-D</code> flag.</p>
-
-<figure class="highlight"><pre><code class="language-shell" data-lang="shell">java <span class="nt">-jar</span> <span class="nt">-DmySystemProperty</span><span class="o">=</span>mySysPropValue MyApplication.jar paramStr1 paramStr2</code></pre></figure>
-
-<p>Those properties are available from all applications and sub-processes running in the JVM execution. Some predefined properties gives info about the current execution context of your JVM. They can be used in a Java application like so:</p>
-
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kt">var</span> <span class="n">sysProps</span> <span class="o">=</span> <span class="nc">System</span><span class="o">.</span><span class="na">getProperty</span><span class="o">();</span>
-<span class="kt">var</span> <span class="n">pathSeperator</span> <span class="o">=</span> <span class="n">sysProps</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">"path.separator"</span><span class="o">);</span>
-<span class="n">sysProps</span><span class="o">.</span><span class="na">setProperty</span><span class="o">(</span><span class="s">"myCustomProperty"</span><span class="o">,</span> <span class="err">"</span><span class="n">myPropertyValue</span><span class="o">);</span></code></pre></figure>
-
-<p>Beware that setting new Properties or overriding an existing one will be persistent only during the current execution of the JVM and will be deleted once JVM shuts down.
-System Properties, like all <a href="https://docs.oracle.com/en/java/javase/17/docs/api/index.html">Properties</a> objects are mere objects available in the Heap and their value is not persisted anywhere on the disk.</p>
-
-<h3>4. Environment Variables</h3>
-<p>Environment variables are nothing specific to Java. They are actually set outside the context of our JVM execution. 
-They are variables defined on the OS level and are available to all processes (unless we define availability constraints on them).
-They are available in all Linux based systems and Windows (with subtle differences). You can this <a href="https://en.wikipedia.org/wiki/Environment_variable">wiki page</a> or this <a href="https://www.twilio.com/blog/how-to-set-environment-variables.html">blog post</a> how to set them.</p>
-
-<p>We can access and use them in java applications like so:</p>
-
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kt">var</span> <span class="n">envVars</span> <span class="o">=</span> <span class="nc">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">();</span>
-<span class="kt">var</span> <span class="n">shell</span> <span class="o">=</span> <span class="n">envVars</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">"SHELL"</span><span class="o">);</span>
-<span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"The current Shell type is: "</span> <span class="o">+</span> <span class="n">shell</span><span class="o">);</span>
-<span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"The current Operating System is: "</span> <span class="o">+</span> <span class="nc">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">(</span><span class="s">"OS"</span><span class="o">));</span></code></pre></figure>
-
-<p><em>Keep in mind that different platforms operate in different ways. E.g., on UNIX, Linux, and macOS, environment variables are case-sensitive, whereas on Microsoft Windows they are not.</em></p>
-
-<p><em>In a java application, we can use environment variables available to our JVM process. But Java does not have a standard way to modify its environment. This is a decision taken to make the language and application portable. and its design isolated from its execution environment.</em></p>
-
-<h3>5. Properties specific to Frameworks</h3>
-<p>If you are using spring or maven, you probably heard about things like (respectively) application properties or project properties.</p>
-
-<h6>Spring application properties</h6>
-<p>The best description comes from the official <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.external-config">docs</a>:</p>
-<blockquote>
-<p>Spring Boot lets you externalize your configuration so that you can work with the same application code in different environments. You can use a variety of external configuration sources including Java properties files, YAML files, environment variables, and command-line arguments.</p>
-<p>Property values can be injected directly into your beans by using the @Value annotation, accessed through Spring’s Environment abstraction, or be bound to structured objects through @ConfigurationProperties.</p>
-</blockquote>
-
-<p>As described above the @Value/@ConfigurationProperties annotations allow you to use these application parameters in your code. The most commonly used way of defining those parameters is an application.properties/.yaml file. But it is not the only way. Spring have multiple ways/places to define those properties and with an order of priority to allow overriding one defined in another. You can find the detailed list of hierarchy in the official documentation.  <br />
-One of them that you should not confuse with System properties, are spring program arguments. You can add application properties them from cli like so <code class="language-plaintext highlighter-rouge">java -jar mySpringApp.jar --someProperty=someValue</code> (see <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.external-config.command-line-args">here</a> for more details).</p>
-
-<p>The already explained configuration parameters like JVM arguments, system properties and environment variables can be sourced to define the spring application properties and used via the respective annotations.</p>
-
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="nd">@Value</span><span class="o">(</span><span class="s">"#{systemEnvironment['MY_SECRET']}"</span><span class="o">)</span> <span class="c1">// via environment variables</span>
-<span class="kd">private</span> <span class="nc">String</span> <span class="n">s1</span><span class="o">;</span>
-
-<span class="nd">@Value</span><span class="o">(</span><span class="s">"#{systemProperties['myApp.mySystemProperty']}"</span><span class="o">)</span> <span class="c1">// via System properties passed in cli:  java -jar -DmyApp.mySystemProperty=someVal mySpringApp.jar </span>
-<span class="kd">private</span> <span class="nc">String</span> <span class="n">s2</span>
-
-<span class="nd">@Value</span><span class="o">(</span><span class="s">"${myApp.myAppProperty:aDefaultValue}"</span><span class="o">)</span> <span class="c1">// via application.property file or other PropertySource definition</span>
-<span class="kd">private</span> <span class="nc">String</span> <span class="n">s3</span><span class="o">;</span></code></pre></figure>
-
-<p>if you are using spring boot, you can directly use the following syntax to access env variables and system properties</p>
-
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="nd">@Value</span><span class="o">(</span><span class="s">"${MY_SECRET:aDefaultValue}"</span><span class="o">)</span>
-<span class="kd">private</span> <span class="nc">String</span> <span class="n">s1</span><span class="o">;</span>
-<span class="nd">@Value</span><span class="o">(</span><span class="s">"${myJVM.mySystemProperty:aDefaultValue}"</span><span class="o">)</span>
-<span class="kd">private</span> <span class="nc">String</span> <span class="n">s2</span><span class="o">;</span></code></pre></figure>
-
-<p>Or a cleaner and simpler way, just define them in the same place as other application properties, like in your application.properties/.yaml file
-Then access those properties via the @Value annotation with a simpler expression.</p>
-
-<figure class="highlight"><pre><code class="language-shell" data-lang="shell">myApp.mySecretIndirect<span class="o">=</span><span class="k">${</span><span class="nv">MY_SECRET</span>:aDefaultValue<span class="k">}</span>
-myApp.mySysPropIndirect<span class="o">=</span><span class="k">${</span><span class="nv">myJVM</span><span class="p">.myProperty</span>:aDefaultValue<span class="k">}</span>
-myApp.myAppProperty<span class="o">=</span>SomeValue</code></pre></figure>
-
-<h6>Maven properties</h6>
-<p>Again from the official <a href="https://maven.apache.org/pom.html#properties">docs</a>:</p>
-<blockquote>
-<p>Maven properties are value placeholders, like properties in Ant. Their values are accessible anywhere within a POM by using the notation ${X}, where X is the property. Or they can be used by plugins as default values</p>
-</blockquote>
-
-<figure class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;project&gt;</span>
-  ...
-  <span class="nt">&lt;properties&gt;</span>
-    <span class="nt">&lt;maven.compiler.source&gt;</span>1.7<span class="nt">&lt;/maven.compiler.source&gt;</span>
-    <span class="nt">&lt;maven.compiler.target&gt;</span>1.7<span class="nt">&lt;/maven.compiler.target&gt;</span>
-    <span class="c">&lt;!-- Following project.-properties are reserved for Maven in will become elements in a future POM definition. --&gt;</span>
-    <span class="c">&lt;!-- Don't start your own properties properties with project. --&gt;</span>
-    <span class="nt">&lt;project.build.sourceEncoding&gt;</span>UTF-8<span class="nt">&lt;/project.build.sourceEncoding&gt;</span> 
-    <span class="nt">&lt;project.reporting.outputEncoding&gt;</span>UTF-8<span class="nt">&lt;/project.reporting.outputEncoding&gt;</span>
-  <span class="nt">&lt;/properties&gt;</span>
-  ...
-<span class="nt">&lt;/project&gt;</span></code></pre></figure>
-
-<p>And again like the above spring properties, maven properties can as well be sourced from the basic java configuration parameters like JVM arguments, system properties and environment variables.<br />
-Once defined (like already explained above), you can use them with the below syntax.</p>
-
-<figure class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;properties&gt;</span>
-    <span class="c">&lt;!-- environment variable --&gt;</span>
-    <span class="nt">&lt;myApp.githubPAT&gt;</span>${env.MY_GITHUB_PAT}<span class="nt">&lt;/myApp.githubPAT&gt;</span>
-    <span class="c">&lt;!-- JVM system properties --&gt;</span>
-    <span class="nt">&lt;myApp.javaPath&gt;</span>${java.home}<span class="nt">&lt;/myApp.javaPath&gt;</span>
-    <span class="nt">&lt;myApp.OS&gt;</span>${os.name}<span class="nt">&lt;/myApp.OS&gt;</span>
-    <span class="c">&lt;!-- JVM System properties , you can give custom ones on cli "mvn -DmyApp.logging.path=... clean install" and access them in pom like normal properties --&gt;</span>
-    <span class="nt">&lt;myApp.logging.file&gt;</span>${myApp.logging.path}/myApp.log<span class="nt">&lt;/myApp.logging.file&gt;</span>
-    <span class="c">&lt;!-- maven predefined properties --&gt;</span>
-    <span class="nt">&lt;myApp.execId&gt;</span>myApp-${maven.build.timestamp}<span class="nt">&lt;/myApp.execId&gt;</span>
-    <span class="nt">&lt;jacoco.unit.file&gt;</span>${project.build.directory}/jacoco-unit.exec<span class="nt">&lt;/jacoco.unit.file&gt;</span>
-    <span class="c">&lt;!-- user defined property --&gt;</span>
-    <span class="nt">&lt;version.jacoco&gt;</span>0.8.7<span class="nt">&lt;/version.jacoco&gt;</span>
-    <span class="nt">&lt;version.jacoco.plugin&gt;</span>${version.jacoco}<span class="nt">&lt;/version.jacoco.plugin&gt;</span>
-<span class="nt">&lt;/properties&gt;</span></code></pre></figure>
-
-<p>If you are interested in going more into the details of maven, the blog post <a href="./maven_sisu">here</a> is a good article to start with.</p>
-
-<h3>6. Resumé </h3>
-<p>If we take those words and analyse the literal meanings outside the scope of programming, we already have a hint of their differences.<br />
-<a href="https://en.wikipedia.org/wiki/Command-line_interface#Arguments">Arguments</a> ?  Short for “arguments of a command line expression”. <br />
-<a href="https://www.oxfordlearnersdictionaries.com/definition/american_english/property#:~:text=1%5Buncountable%5D%20a%20thing%20or,intellectual%20property%2C%20public%20property%20Thesaurus">Properties</a> ? They are values that defines something.<br />
-<a href="https://www.oxfordlearnersdictionaries.com/definition/english/variable_1?q=variable">Variables</a> ? Something that can change outside our will.</p>
-
-<ol>
-<li>Program Arguments: String Parameters we pass to our main method. Must be given set startup.</li> 
-<li>JVM Arguments: Options that affect how the JVM operates. Must be given set startup.</li> 
-<li>System Properties: Value/Keys available in every application running in the JVM. Can be set via command line, or by the code of the java application.</li>
-<li>Environment Variables: Values that are set outside the execution of the JVM and cannot be changed by the JVM.</li>
-</ol>
-
-<p><img src="../assets/images/JavaPropsVarsArgs.png" /></p>
-
-<h1> Secrets ?</h1>
-<p>Now lets get back to the focus element of this post. The credentials in our configuration, aka. secrets.</p>
-
-<p>There are different methods to give secret values as parameters to an application.
-The most basic and old way, is to have the credentials stored in a configuration file, located only on a server we consider secure, and we limit all access to it. Like the production server.
-For applications that run on bare metal or VMs, this is most often the chosen method.</p>
-
-<p>Just to give a glimpse of some best practices used today without diving into too much details since it is not the subject of this blog post,
-if you are using deployment tools like ansible, you can profit from features like <a href="https://docs.ansible.com/ansible/latest/vault_guide">Ansible Vault</a>.</p>
-
-<p><img src="../assets/images/hashicorp_ansible_jenkins_vm.png" /></p>
-
-<p>It allows you to encrypt them with a key so your secret file that is encrypted may even be pushed on version control.
-It will then decrypt them on the fly during deployment.
-So only the decryption key is needed to be managed during the deployment and execution of the application.
-The encryption key is the real secret here and can be stored in your CI tool that will launch the deployments, or you can use a secret manager like <a href="https://www.vaultproject.io/">Hashicorp Vault</a> to keep your secrets.
-Most CI tools, like jenkins have <a href="https://plugins.jenkins.io/hashicorp-vault-plugin/">plugins</a>, allowing to communicate with HashiCorp Vault to fetch your secrets during your pipeline execution instead of storing them on the CI server.</p>
-
-<div class="alert">
-    <div style="margin-left: 0.7em;">
-        <!--<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16">
-            <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
-        </svg>--> 
-        Warning:
-        <em>The most secure way to manage secrets is to not persist them at all anywhere apart we consider secure.
-        Also, duplicating the places where you persist the secret widens the attack surface and increase the risk of leak of the secret.</em>
-    </div>
-</div>
-
-<h3> Secrets accessible to the JVM from Environment Variables </h3>
-<p>Application execution environments are considered as not secure since it is a place we do regular changes. Lots of ins and outs, difficult to track and secure.
-This is why key management applications, like HashiCorp Vault has come into being. Their only purpose is to store your secrets.</p>
-
-<p>Execution environments like containers have the advantage of being ephemeral which in turns makes the fact of having the secrets accessible on the execution environment more secure. 
-Making them accessible via environment variables, instead of a config file persisted on the FS, is considered relatively more secure. 
-There are still some concerns about this approach in general ( <a href="https://www.cloudtruth.com/blog/the-pitfalls-of-using-environment-variables-for-config-and-secrets">one</a> or <a href="https://www.trendmicro.com/en_za/research/22/h/analyzing-hidden-danger-of-environment-variables-for-keeping-secrets.html">two</a> among other tones of discussion on platforms like stackexchange and stackoverflow, of blog posts are available on the net)
-but most known Container Execution Environment Providers like Docker and Kubernetes has components (<a href="https://kubernetes.io/docs/concepts/configuration/secret/">etcd</a> for K8s) that are considered relatively secure to store the secrets for you.
-Kubernetes has even a HashiCorp Vault <a href="https://www.vaultproject.io/use-cases/kubernetes">plugin</a> that allows fetching the secrets from Vault and injecting into the pods, instead of storing them in own DB (etcd).</p>
-
-<p><img src="../assets/images/hashicorp_jenkins_kubernetes.png" /></p>
-
-<p>Plus, this option has the advantage of being able to put all the configurations related to your application to version control (recommended by the <a href="https://7factorconfig.org/">7 factor config</a>).
-The only thing to manage in the execution environment is the credentials to access to Vault. Vault has several different integration tools with K8s, each having their pros and cons, discussed <a href="https://www.hashicorp.com/blog/kubernetes-vault-integration-via-sidecar-agent-injector-vs-csi-provider">here</a>.</p>
-
-<h3> Secrets injected directly into the JVM from Secret Manager </h3>
-<p>If we compare the above methods:</p>
-<ol>
-  <li>The first approach with bare metal VMs force us to handle secrets manually, while the second automates the injection of the secrets to the application runtime environment.</li>
-  <li>But the second still forces us to administrate the access to the vault from the runtime environments of our application.<br />
-For example we have to use specific plugins/tools/agents to each environment to access to the Vault and fetch secrets.</li>
-</ol>
-
-<p>Frameworks like <a href="https://cloud.spring.io/spring-cloud-vault/reference/html/">spring-cloud-vault</a> or tools like <a href="https://homeofthewizard.github.io/vault-maven-plugin/">maven-vault-plugin</a> allows the JVM to fetch the secrets directly from the HashiCorp Vault.<br />
-They are pure Java solutions, so you do not have to install anything specific to the execution environment, so can be used even in development environments.<br />
-Plus your secrets are not persisted anywhere, but exists only in memory of your application.</p>
-
-<h1> Appendix: References </h1>
-<p>https://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html  <br />
-https://docs.oracle.com/javase/tutorial/essential/environment/index.html<br />
-https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Properties.html  <br />
-https://7factorconfig.org/ <br />
-https://12factor.net/ <br />
-https://www.twilio.com/blog/working-with-environment-variables-in-java
-https://betterdev.blog/command-line-arguments-anatomy-explained/
-https://developer.hashicorp.com/vault/docs/agent-and-proxy/agent<br />
-https://security.stackexchange.com/questions/197784/is-it-unsafe-to-use-environmental-variables-for-secret-data<br />
-https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.external-config<br />
-https://docs.spring.io/spring-framework/reference/core/beans/annotation-config/value-annotations.html</p>]]></content><author><name>Özgün ÖZ</name></author><category term="development" /><category term="java" /><summary type="html"><![CDATA[This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.]]></summary></entry></feed>
+https://maven.apache.org/guides/mini/guide-using-extensions.html</p>]]></content><author><name>Özgün ÖZ</name></author><category term="development" /><category term="java" /><summary type="html"><![CDATA[Deep dive into maven’s internals to help the development of plugins]]></summary></entry></feed>

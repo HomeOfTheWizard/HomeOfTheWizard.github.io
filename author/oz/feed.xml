@@ -4,7 +4,7 @@
   <generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator>
   <link href="/author/oz/feed.xml" rel="self" type="application/atom+xml" />
   <link href="/" rel="alternate" type="text/html" />
-  <updated>2024-07-27T17:46:59+02:00</updated>
+  <updated>2024-07-29T12:46:30+02:00</updated>
   <id>/author/oz/feed.xml</id>
 
   
@@ -30,438 +30,6 @@
   
   
 
-  
-    <entry>
-      <title type="html">Clickhouse 101 - Data Structures and internals</title>
-      <link href="/clickhouse101_1" rel="alternate" type="text/html" title="Clickhouse 101 - Data Structures and internals" />
-      <published>2023-08-30T12:18:00+02:00</published>
-      <updated>2023-08-30T12:18:00+02:00</updated>
-      <id>/clickhouse101_1</id>
-      <content type="html" xml:base="/clickhouse101_1">&lt;p&gt;First article of the clickhouse 101 series. Lets deep dive into the underlying data structures and internal mechanisms of clickhouse.&lt;/p&gt;
-
-&lt;p&gt;Clickhouse is a DB that has a lot of potential and growing fast. Its use cases increase very rapidly as well. If you are into Data Analytics and Bigdata, you must explore it before too late.
-This series of articles are meant to give an easy introduction to clickhouse to mainly junior level engineers, but you will still find interesting content if you are more experienced. 
-The official documentation is evolving very fast. It is now complete in terms of content, and it is easier to read and browse through.&lt;br /&gt;
-So in this series we will be covering topics necessary knowledge before you dig into the official documentation, a résumé of most important points that differ clickhouse and that need attention, lastly and most importantly give experience based and neutral recommendations.&lt;/p&gt;
-
-&lt;p&gt;The series of articles will be as the following:&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;&lt;a href=&quot;/clickhouse101_1&quot;&gt;Clickhouse DataStructures and Internals&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;Modeling your data in Clickhouse&lt;/li&gt;
-  &lt;li&gt;Tradeoffs to take into account for Optimization&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;In this first article, we will cover a bit of theory before getting into the practice. We will refresh our memory on the basics of DBs in general and the datastructures used in them. Lastly see how these structures are used in clickhouse and where does its power come from. &lt;br /&gt;
-We will cover the following topics:&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;&lt;a href=&quot;#whatisCH&quot; id=&quot;whatisCHref&quot;&gt;What is Clickhouse ?&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;#dsCH&quot; id=&quot;dsCHref&quot;&gt;Datastructures used in DBs and in Clickhouse&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;#internalCH&quot; id=&quot;internalCHref&quot;&gt;Clickhouse internal Storage and Query Mechanisms&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;hr /&gt;
-
-&lt;h1 id=&quot;whatisCH&quot;&gt; 1. What is Clickhouse ? &lt;/h1&gt;
-
-&lt;p&gt;The best answer to that comes always from the &lt;a href=&quot;https://clickhouse.com/docs/en/intro&amp;quot;&quot;&gt;official documentation&lt;/a&gt;:&lt;/p&gt;
-&lt;blockquote&gt;
-ClickHouse® is a high-performance, column-oriented SQL database management system (DBMS) for online analytical processing (OLAP). It is available as both an open-source software and a cloud offering.
-&lt;/blockquote&gt;
-
-&lt;p&gt;To describe its differences briefly:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;It is a true Column Based Database&lt;/li&gt;
-  &lt;li&gt;Uses data compression as a key role of its internal mechanism&lt;/li&gt;
-  &lt;li&gt;Stores data on disk&lt;/li&gt;
-  &lt;li&gt;Process data in blocks (similar data is stored together), in parallel (uses multicore CPUs) and has a distributed architecture (every instance is independent)&lt;/li&gt;
-  &lt;li&gt;Has SQL support (pretty much)&lt;/li&gt;
-  &lt;li&gt;Real time Data inserts (async data inserts do not block queries)&lt;/li&gt;
-  &lt;li&gt;It is Opensource&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;In order to understand it’s true power and its differences from other DBs, lets first try to understand the basic concepts behind Column Oriented DBs and OLAP queries.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h1 id=&quot;dsCH&quot;&gt; 2. Datastructures used in DBs and in Clickhouse&lt;/h1&gt;
-&lt;h2&gt; 2.1 Analytical Processing (OLAP) &lt;/h2&gt;
-&lt;p&gt;Definition from &lt;a href=&quot;https://en.wikipedia.org/wiki/Online_analytical_processing&quot;&gt;wikipedia&lt;/a&gt;:&lt;/p&gt;
-&lt;blockquote&gt;OLAP (/ˈoʊlæp/), is an approach to answer multi-dimensional analytical (MDA) queries swiftly in computing.&lt;/blockquote&gt;
-&lt;p&gt;Explained simply: It requires a system where we will insert new data very frequently, and want to query adhoc slices of it in real time. But never update the inserted data.&lt;/p&gt;
-
-&lt;p&gt;If we dig further:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;It requires scanning and aggregating large amount of data.&lt;br /&gt;
-Meaning that it is I/O and compute intensive (bottleneck is usually IO).&lt;/li&gt;
-  &lt;li&gt;Choosing different adhoc slices of data.&lt;br /&gt;
-Since we have lots of attributes and huge data, cache, index, pre-aggregation have limited value.&lt;/li&gt;
-  &lt;li&gt;Needs to deliver extremely fast response.&lt;br /&gt;
-Response required in as little as 20ms (Most of the time it is the backend for real-time applications)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;These systems present the data to the user modelled as a &lt;a href=&quot;https://en.wikipedia.org/wiki/OLAP_cube&quot;&gt;cube&lt;/a&gt; in order to ease querying adhoc slices of it.
-The term cube here refers to a multidimensional dataset, which is also sometimes called a &lt;strong&gt;hypercube&lt;/strong&gt; if the number of dimensions is greater than three (which is usually the case).
-It consists of numeric facts called measures that are categorized by dimensions. The measures are placed at the intersections of the hypercube, which is spanned by the dimensions as a vector space.&lt;/p&gt;
-
-&lt;p&gt;Let’s say we have a dataset where our fact/measure is the sales of a company, and the dimensions (attributes) of it are time of the sale, product sold, and the city where it is sold.
-Each cell of the cube holds a number that represents some measure of the business, such as sales, the 3 dimensions of our cube are the 3 attributes of our sale data.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;../assets/images/OLAP_Cube.svg.png&quot; width=&quot;256&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Multiple standard operations of an OLAP cube exists to allow users analyse the data on all its aspects.&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;Slicing/Dicing: Filtering the data on one or multiple specific value of one of its dimension. (ex: data for only the year 1989)&lt;/li&gt;
-  &lt;li&gt;Drill Down/Up: allows the user to navigate among levels of data ranging from the most summarized (up) to the most detailed (down). (ex: from outdoor sport equipments to individual products)&lt;/li&gt;
-  &lt;li&gt;Roll-up: Involves summarizing the data along a dimension. The summarization rule might be an aggregate function, such as computing totals along a hierarchy or applying a set of formulas such as “profit = sales - expenses”&lt;/li&gt;
-  &lt;li&gt;Pivot allows an analyst to rotate the cube in space to see its various faces. For example, cities could be arranged vertically and products horizontally while viewing data for a particular year&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Olap systems under the hood, structures the DB tables in form of a &lt;a href=&quot;https://en.wikipedia.org/wiki/Star_schema&quot;&gt;star schema&lt;/a&gt; (other types of schemas exists, but similar).&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;../assets/images/star-schema.png&quot; width=&quot;512&quot; /&gt;&lt;/p&gt;
-&lt;p&gt;Olap systems can have their data modeled in Clickhouse with this structure as well, but a simple and single flat table is more recommended. We will see why and how clickhouse allow this later in this post.&lt;/p&gt;
-
-&lt;p&gt;Olap systems in order to give a cube like visualisation to the user on the UI or spreadsheet, based on the database structure under it, use an intermediate component that has a query engine generating the appropriate Queries (SQL for ClickHouse).
-Some of the available solutions that provides the cube model on top of ClickHouse are &lt;a href=&quot;https://cube.dev/for/clickhouse-dashboard&quot;&gt;Cube&lt;/a&gt; and &lt;a href=&quot;https://www.metabase.com/data_sources/click-house&quot;&gt;Metabase&lt;/a&gt;(opensource), and &lt;a href=&quot;https://opensee.io/&quot;&gt;Opensee&lt;/a&gt; (tailored for financial institutions).&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-OLAP.png&quot; width=&quot;1024&quot; /&gt;&lt;/p&gt;
-
-&lt;h2&gt; 2.2 How DBs work in general &lt;/h2&gt;
-&lt;p&gt;Before we see how Column-Oriented DBs work (like clickhouse), lets refresh our memories on some base concepts necessary to understand how DBs store data, and how they look up for them when queried.&lt;/p&gt;
-
-&lt;p&gt;Lets illustrate how those work using the following DB table.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-table.png&quot; /&gt;&lt;/p&gt;
-
-&lt;h3&gt;Partitionning&lt;/h3&gt;
-&lt;p&gt;It allows a table to be subdivided and stored into smaller pieces, where each piece of such a database object is called a partition. Each partition has its own name, and may optionally have its own storage characteristics (maybe stored on separate physical or virtual disk for example). The data of partitioned tables is divided into units that can be spread across more than one filegroup in a database. The data is partitioned horizontally, so that groups of rows are mapped into individual partitions.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-partitioning-tables.png&quot; /&gt;&lt;/p&gt;
-
-&lt;h3&gt;Indexing&lt;/h3&gt;
-&lt;p&gt;I would like to state first the definition of the word &lt;a href=&quot;https://en.wikipedia.org/wiki/Index_(publishing)&quot;&gt;“index”&lt;/a&gt;:&lt;/p&gt;
-&lt;blockquote&gt;
-An index is a list of words or phrases (&apos;headings&apos;) and associated pointers (&apos;locators&apos;) to where useful material relating to that heading can be found in a document or collection of documents. Examples are an index in the back matter of a book and an index that serves as a library catalog. An index differs from a word index, or concordance, in focusing on the subject of the text rather than the exact words in a text, and it differs from a table of contents because the index is ordered by subject, regardless of whether it is early or late in the book, while the listed items in a table of contents is placed in the same order as the book.[1]
-&lt;/blockquote&gt;
-
-&lt;p&gt;Now we can understand its usage &lt;a href=&quot;https://en.wikipedia.org/wiki/Database_index&quot;&gt;in DBs&lt;/a&gt;.&lt;/p&gt;
-&lt;blockquote&gt;
-A database index is a data structure that improves the speed of data retrieval operations on a database table at the cost of additional writes and storage space to maintain the index data structure.
-&lt;/blockquote&gt;
-
-&lt;p&gt;Indexes in DBs are created using the following two info:&lt;br /&gt;
-&lt;strong&gt;Search key:&lt;/strong&gt; A copy of the primary key, the values of the search key is stored in sorted order to be able to search on them easily.&lt;br /&gt;
-&lt;strong&gt;Data ref:&lt;/strong&gt; or pointer, which contains addresses of disk block where the value row of that particular key is stored.    &lt;br /&gt;
-&lt;em&gt;NOTE: the pointed data itself may or may not be ordered.&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-indexing-tables.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;There exists two types of index file organisations:&lt;br /&gt;
-&lt;strong&gt; 1. Sequential file organisation &lt;/strong&gt;&lt;br /&gt;
-&lt;strong&gt; 2. Hash file organisation &lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;Lets illustrate how those organisations work using our DB table.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-indexing-table.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;We will start with Hash file, and finish with Sequential file index, cause the latest is the one used in ClickHouse.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Hash file organisation:&lt;/strong&gt;
-Is an index that uses a hash function with search keys as parameters to generate the direct addresses of data record on disk.
-We give the definition of a hash function later in this article.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-hash-file.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;As it is the case for all Hash based organisations, the data stored is scattered, non-ordered, so cannot be compressed. Lots of space is not used and wasted.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Sequential file index organisation:&lt;/strong&gt;
-In this, the indices are based on a sorted ordering of the values. These are generally fast and a more traditional type of storing mechanism. These Ordered or Sequential file organizations might store the data in a dense or sparse format.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-sequential-file.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Dense index: &lt;/strong&gt;
-We can see that the index has an entry for every first name in the table. If we want to look up a user with the first name “Arnaud,” then we perform a binary search on the index and read the location of the data. In contrast, a sparse index only has entries for some of the table rows.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Sparse index:&lt;/strong&gt;&lt;br /&gt;
-We can see that our sparse index only has 2 entries (one for each page). Now, if we want to find the row for “Arnaud,” we can perform a binary search on our index to find that it falls between “Anne” and “Mathieu”. After discovering those bounds, we go to the page starting with “Anne” and begin scanning for Arnaud’s row. Notice that the data is now sorted on the right side for this example. This sorting is a limitation of the sparse index. A sparse index requires ordered data; otherwise, the scanning step would be impossible.&lt;/p&gt;
-
-&lt;p&gt;Dense indexes require more maintenance than sparse indexes at write-time. Since every row must have an entry, the database must maintain the index on inserts, updates, and deletes. Having an entry for every row also means that dense indexes will require more memory. The benefit of a dense index is that values can be quickly found with just a binary search. Dense indexes also do not impose any ordering requirements on the data.
-Sparse indexes require less maintenance than dense indexes at write-time since they only contain a subset of the values. This lighter maintenance burden means that inserts, updates, and deletes will be faster. Having fewer entries also means that the index will use less memory. Finding data is slower since a scan across the page typically follows the binary search. Sparse indexes are also only an option when working with ordered data.&lt;/p&gt;
-
-&lt;h2&gt; 2.3. How Row and Column based Databases work&lt;/h2&gt;
-&lt;p&gt;Lets say we have the following DB table.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-DB table.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Row oriented DBs, as the name suggest, store data in rows. It is easy to write and read entire rows. But not so much if you want to read adhoc Query or do aggregation on particular columns, like analytical queries does. 
-In that case you have to bring all columns for all rows, read multiple disks potentially, then filter on columns you are interested, then only aggregate.&lt;/p&gt;
-
-&lt;p&gt;For example if we want to add a new row in a Row oriented DB, we would be appending the data like below.&lt;br /&gt;
-Reading from it would require reading all columns.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-Row%20based%20DBs.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Now imagine if we just wanted to sum the ages in this table. We would have to read all data columns first to get the data we need. Also if we partition the table into multiple disks, this would mean that the computer would need to read from multiple disks to get the data necessary.&lt;/p&gt;
-
-&lt;p&gt;Now lets compare the same scenario for the same data stored on a Column Oriented design.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-Column%20based%20DBs.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;If we want to add new data, we would have to plug each column’s data into where it belongs. If we use a single disk, we would have to bring everything in memory to do this. But it is the same with Row Oriented design. Column Oriented design has its advantage if we partition data into multiple disks.&lt;/p&gt;
-
-&lt;p&gt;As we can see from above, when reading a single column for aggregating on it, we just need one disk, and the data loaded in memory is much less.&lt;/p&gt;
-
-&lt;p&gt;Now, If we want to save space on our DB and secure data, we may consider data encoding and compression. So lets see what that means.&lt;/p&gt;
-
-&lt;h2&gt; 2.4. Compression ? Encoding ? Encryption ? Hashing ? Indexing ? Huh ?!&lt;/h2&gt;
-&lt;p&gt;Compression from &lt;a href=&quot;https://en.wikipedia.org/wiki/Data_compression&quot;&gt;wikipedia&lt;/a&gt;:&lt;/p&gt;
-&lt;blockquote&gt;
-In information theory, data compression, source coding, or bit-rate reduction is the process of encoding information using fewer bits than the original representation. Any particular compression is either lossy or lossless. Lossless compression reduces bits by identifying and eliminating statistical redundancy. No information is lost in lossless compression. Lossy compression reduces bits by removing unnecessary or less important information.[3] Typically, a device that performs data compression is referred to as an encoder, and one that performs the reversal of the process (decompression) as a decoder.
-&lt;/blockquote&gt;
-&lt;p&gt;As the description above says, compression is a type of encoding. So lets start with that first.&lt;/p&gt;
-
-&lt;h3&gt; What is Encoding ? &lt;/h3&gt;
-&lt;p&gt;Encoding data is a process involving changing data into a new format using a scheme. Encoding is a reversible process and data can be encoded to a new format and decoded to its original format. Encoding typically involves a publicly available scheme that is easily reversed. Encoding data is typically used to ensure the integrity and usability of data and is commonly used when data cannot be transferred in its current format between systems or applications. Encoding is not used to protect or secure data because it is easy to reverse.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;An example of encoding - Base64  &lt;/strong&gt;
-It is a method to encode byte sequences to a string. Also known as ASCII encoding, it converts binary data to ASCII strings.
-But it is not the ideal choice for security as it can easily be decoded.
-Instead, it serves as an easy way to make non HTTP compatible data types readable (image, audio ect…)
-We can attach a base64 encoded image into an xml or email.
-It provides no checksum or anything for storage value, so it is really used for transport.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt; Another example of encoding - UTF &lt;/strong&gt;
-It is a method used for storage. 
-UTF Stands for “Unicode Transformation Format”. The UTF encoding standards, such as UTF-8, 16 ect., are used to convert Unicode character into numerals. &lt;strong&gt;Unicode&lt;/strong&gt; is a codded character set. A set of characters and mapping between those characters and their integer codes representing them.&lt;/p&gt;
-
-&lt;p&gt;Lets say we want to store the following character in our hard drive.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;character:              汉
-unicode:                U+6C49
-unicode in binary:      01101100  01001001&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;When we decide to store a character in our hard drive, we can simply put its binary value. When the computer reads it, it has no idea how to parse this. It is one byte 2 charcter ? or two bytes 1 character ? so we need an encoding to tell the computer how to treat it when read. This is where UTF-8 like encodings comes in.&lt;/p&gt;
-
-&lt;p&gt;Binary Format of Byte Sequences in UTF-8 are like the following:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-utf-table.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Which format from the above table we will use depends on how many bits we need to write in binary the unicode of our character (for 汉 we need 2bytes/16bits).  &lt;br /&gt;
-So to Encode 汉 in UTF-8 we will use the 3bytes format which has 16bits free:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-utf-encoding.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Encoding of 汉 in UTF-8   =  11100110 10110001 10001001&lt;/p&gt;
-
-&lt;h3&gt; What is Encryption ? &lt;/h3&gt;
-&lt;p&gt;Encryption is an encoding technique for a specific need, which is to allow only authorized users with a key or password to decrypt the data and reveal its original. Encryption is used when data needs to be protected so those without the decryption keys cannot access the original data. For example, when data is sent to a website over HTTPS it is encrypted using the public key type. While encryption does involve encoding data, the two are not interchangeable terms, encryption is always used when referring to data that has been securely encoded. Encoding data is used only when talking about data that is not securely encoded.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;An example of encryption is: AES&lt;/strong&gt;
-AES is the Advanced Encryption Standard and is a symmetric key encryption.
-We will see, in later articles of this series that Clickhouse, if needed, allows encrypting the data at rest with an AES key.&lt;/p&gt;
-
-&lt;p&gt;If you would like to dig deeper into encryption, the subject is very wast and is a scientific field apart (Cryptography), but I could suggest &lt;a href=&quot;https://en.wikipedia.org/wiki/Encryption&quot;&gt;this article&lt;/a&gt; as a good beginning.&lt;/p&gt;
-
-&lt;h3&gt; What is Hashing ? &lt;/h3&gt;
-&lt;p&gt;Hashing is a one-way process where data is “encoded”, using a hash-function.
-The best definition of a hash function comes from &lt;a href=&quot;&amp;quot;https://en.wikipedia.org/wiki/Hash_function&amp;quot;&quot;&gt;wikipedia&lt;/a&gt;:&lt;/p&gt;
-&lt;blockquote&gt;
-A hash function is any function that can be used to map data of arbitrary size to fixed-size values, though there are some hash functions that support variable length output. The values returned by a hash function are called hash values, hash codes, digests, or simply hashes. The values are usually used to index a fixed-size table called a hash table. Use of a hash function to index a hash table is called hashing or scatter storage addressing.
-&lt;/blockquote&gt;
-&lt;p&gt;As we can understand from that definition, hashing can be using to index data in Databases, which we already saw above.&lt;/p&gt;
-
-&lt;p&gt;But on top of that Hashing is also commonly used to verify the integrity of data, commonly referred to as a checksum, and it is the recommended data transformation technique in authentication processes for computer systems and applications.
-If you are interested to those other usages outside our scope, a good article can be found &lt;a href=&quot;https://www.packetlabs.net/posts/encryption-encoding-and-hashing/#:~:text=In%20addition%20to%20verifying%20the,of%20the%20%E2%80%9Csalted%20password%E2%80%9D&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3&gt; What is Compression ? &lt;/h3&gt;
-&lt;p&gt;Compression mechanisms seperates into two, losseless and lossy. As the names suggest, lossless types can compress/decompress data and reconstruct it without any data loss. ex: zip archives which includes tarball(tar.xz) compression for unix systems.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt; An example of Compression - Dictionary Encoding:&lt;/strong&gt;
-Most primitive, yet most powerful encoding. It compresses really good, but the dictionary built is usually for a specific purpose. Otherwise too big an not optimal. A common usage is Brotli algorithm used to compress web pages.&lt;/p&gt;
-
-&lt;table&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th&gt;key&lt;/th&gt;
-      &lt;th&gt;encoded value&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;1&lt;/td&gt;
-      &lt;td&gt;fondue&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;2&lt;/td&gt;
-      &lt;td&gt;spageti&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;3&lt;/td&gt;
-      &lt;td&gt;döner&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;&lt;strong&gt;An example of Compression - Bitmap Compression / Run-length Encoding:&lt;/strong&gt;
-It is a form of losseless compression in which “runs” of data (sequences in which the same data value occurs in many consecutive data elements) are stored as a single data value and count.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;aaaab -&amp;gt; 4a1b&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;h2&gt; 2.5. Why sorting is important in C-Oriented DBs ? &lt;/h2&gt;
-&lt;p&gt;When doing adHoc queries, there are different sort orders of data that would improve performance. We might want to list data ordered by date, for instance both in asc and desc order. In R-DBs, indexes can be created but data is rarely ordered with multiple sort orders. In C-DBs you can.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-ColumnOriented-ReadStores.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;These ways of storing data are called “projections”.
-There are multiple benefits beyond query performance. Having multiple copies of same data allows fault tolerance.&lt;/p&gt;
-
-&lt;p&gt;The above diagram seems difficult to update, and it is. But that is why usually C-DBs have the main table called “writable store (WS)” and multiple “readable stores (RS)”.
-The WS has data ordered in order of injection. It simply appends new data to the existing one. It has a tuple mover that updates the RS with the updates to the WS.
-The RS can have multiple projections. The tuple mover navigates to the projections and append data to the proper place.&lt;/p&gt;
-&lt;div class=&quot;alert&quot;&gt;
-    &lt;div style=&quot;margin-left: 0.7em;&quot;&gt;
-        &lt;!--&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;16&quot; height=&quot;16&quot; fill=&quot;currentColor&quot; class=&quot;bi bi-exclamation-triangle-fill&quot; viewBox=&quot;0 0 16 16&quot;&gt;
-            &lt;path d=&quot;M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z&quot;/&gt;
-        &lt;/svg&gt;--&gt; 
-        Warning:
-        &lt;em&gt;This architecture requires that the partially inserted data to the RS should be ignored by the incoming adhoc queries, until the insertion is completed&lt;/em&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-
-&lt;p&gt;As seen above since we can sort column data. This allows us to compress with run-lenght encoding to reduce the data in terms of bit and store less data on our hard drive. 
-Also since we encode data, each piece of data is the same number of bits long. So we can further compress: each data piece is shown as, the number of piece of data times the number of bits each data piece has.
-All of that allows our DB to read less data from the disk when querying it ! isn’t that beautiful ?&lt;/p&gt;
-
-&lt;h2&gt; 2.6. Résumé &lt;/h2&gt;
-&lt;p&gt;In C-Oriented DBs:&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;Data is partitioned by columns.&lt;/li&gt;
-  &lt;li&gt;Column Data is stored ordered.&lt;/li&gt;
-  &lt;li&gt;Since data is ordered, so we can us Sparse index.&lt;/li&gt;
-  &lt;li&gt;Data is ordered, so we can compress it.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Now we have learned a lot about C-Oriented Columns. How things work really in clickhouse ?&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h1 id=&quot;internalCH&quot;&gt; 3. Clickhouse Internal Storage and Query Mechanism&lt;/h1&gt;
-&lt;p&gt;Now lets take a practical example to illustrate the power of clickhouse.&lt;br /&gt;
-Say we have the table below. It gives the information of the flights on Charle-De-Gaule airport and containing 8.87 million entry:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-partitioned-table.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;If we execute the query below on that table:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sql&quot; data-lang=&quot;sql&quot;&gt;&lt;span class=&quot;k&quot;&gt;SELECT&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Carrier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;toYear&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FlightDate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Year&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;canceled&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;canceled&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;flights_ontime&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;WHERE&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Year&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2017&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;GROUP&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;BY&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Carrier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Year&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;HAVING&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cancelled&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;ORDER&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;BY&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Carrier&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;If we:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;read every row 				=&amp;gt; 	59GB  	%100&lt;/li&gt;
-  &lt;li&gt;read only 3 columns 		    =&amp;gt;	1,7GB	%3&lt;/li&gt;
-  &lt;li&gt;read 3 cols compressed		=&amp;gt;	21MB	%0,035&lt;/li&gt;
-  &lt;li&gt;read 3 cols comp 8 threads	=&amp;gt;	2,6MB	%0,0044&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;As we already saw Partitions are how data is physically organised in databases.
-Let’s say that we have a data on our list of friends.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-partitioning.png&quot; /&gt;&lt;/p&gt;
-&lt;p&gt;If We split the data in two partition. If we order the data in each partition by lets say “name”,
-the data in each partition will look like this.
-Each partition will have a sparse index. The columns’ data are stored separately, in the order we see here, linked to the “name” column’s order.&lt;/p&gt;
-
-&lt;p&gt;If we get back to our flight records example, a partition looks like below.
-Each partition will be a folder on the file system containing multiple files. We see that the folder is named with the month. We had partitionned our data by the flight Month.
-We have put the flightDate and CarrierId in the primary key, so they will be used in the sparse index file.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-parts-internals.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;For data processing purposes, a table’s column values are logically divided into granules. A granule is the smallest indivisible data set that is streamed into ClickHouse for data processing. This means that instead of reading individual rows, ClickHouse is always reading (in a streaming fashion and in parallel) a whole group (granule) of rows.
-The above diagram shows how the (column values of) 8.87 million rows of our table are organized into 1083 granules (a configuration value of 8192 by default for a granule’s size, can be changed).&lt;/p&gt;
-
-&lt;p&gt;The primary index is created based on the granules shown in the diagram above. This index is an uncompressed flat array file (primary.idx), containing so-called numerical index marks starting at 0.&lt;/p&gt;
-
-&lt;p&gt;The diagram above shows that the index stores the primary key column values for each first row for each granule. Or in other words: the primary index stores the primary key column values from each 8192nd row of the table (based on the physical row order defined by the primary key columns).&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;The first index entry (‘mark 0’) is storing the key column values of the first row of granule 0,&lt;/li&gt;
-  &lt;li&gt;The second index entry (‘mark 1’) is storing the key column values of the first row of granule 1, and so on.
-For example if I am looking for the Data of AirFrance (carrierID AF) on July 2017, it will fell into the first granule according to this sparse index.
-And the mark for this granule will be the mark0 in the .mrk file.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3&gt;Why Sparse index ?&lt;/h3&gt;
-&lt;p&gt;In traditional relational database management systems, the primary index would contain one entry per table row. For our data set this would result in the primary index - often a B(+)-Tree data structure - containing 8.87 million entries. Such an index allows the fast location of specific rows, resulting in high efficiency for lookup queries and point updates. Searching an entry in a B(+)-Tree data structure has average time complexity of O(log2 n). For a table of 8.87 million rows, this means 23 steps are required to locate any index entry. This capability comes at a cost: additional disk and memory overheads and higher insertion costs when adding new rows to the table and entries to the index (and also sometimes rebalancing of the B-Tree).&lt;/p&gt;
-
-&lt;p&gt;Considering the challenges associated with B-Tree indexes, table engines in ClickHouse utilise a different approach. The ClickHouse MergeTree Engine Family has been designed and optimized to handle massive data volumes. These tables are designed to receive millions of row inserts per second and store very large (100s of Petabytes) volumes of data. Data is quickly written to a table part by part, with rules applied for merging the parts in the background. In ClickHouse each part has its own primary index. When parts are merged, then the merged part’s primary indexes are also merged. At the very large scale that ClickHouse is designed for, it is paramount to be very disk and memory efficient. Therefore, instead of indexing every row, the primary index for a part has one index entry (known as a ‘&lt;strong&gt;mark&lt;/strong&gt;’) per group of rows (called ‘&lt;strong&gt;granule&lt;/strong&gt;’) - this technique is called sparse index.&lt;/p&gt;
-
-&lt;p&gt;Sparse indexing is possible because ClickHouse is storing the rows for a part on disk ordered by the primary key column(s). Instead of directly locating single rows (like a B-Tree based index), the sparse primary index allows it to quickly (via a binary search over index entries) identify groups of rows that could possibly match the query. The located groups of potentially matching rows (granules) are then in parallel streamed into the ClickHouse engine in order to find the matches. This index design allows for the primary index to be small (it can, and must, completely fit into the main memory), whilst still significantly speeding up query execution times: especially for range queries that are typical in data analytics use cases.&lt;/p&gt;
-
-&lt;h3&gt;How this structure is used when Querying data?&lt;/h3&gt;
-&lt;p&gt;When a query is filtering on a column that is part of a compound key and is the first key column, then ClickHouse is running the binary search algorithm over the key column’s index marks.&lt;/p&gt;
-
-&lt;p&gt;As discussed above, ClickHouse is using its sparse primary index for quickly (via binary search) selecting granules that could possibly contain rows that match a query.&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;This is the first stage (granule selection) of ClickHouse query execution.&lt;/li&gt;
-  &lt;li&gt;In the second stage (data reading), ClickHouse is locating the selected granules in order to stream all their rows into the ClickHouse engine in order to find the rows that are actually matching the query.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;In ClickHouse the physical locations of all granules for our table are stored in mark files. Similar to data files, there is one mark file per table column.
-We have discussed how the primary index is a flat uncompressed array file (primary.idx), containing index marks that are numbered starting at 0.
-Similarly, a mark file is also a flat uncompressed array file (*.mrk) containing marks that are numbered starting at 0.
-Once ClickHouse has identified and selected the index mark for a granule that can possibly contain matching rows for a query, a positional array lookup can be performed in the mark files in order to obtain the physical locations of the granule.&lt;/p&gt;
-
-&lt;p&gt;Each mark file entry for a specific column is storing two locations in the form of offsets:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;The first offset (‘block_offset’) is locating the block in the compressed column data file that contains the compressed version of the selected granule. This compressed block potentially contains a few compressed granules. The located compressed file block is uncompressed into the main memory on read.&lt;/li&gt;
-  &lt;li&gt;The second offset (‘granule_offset’) from the mark-file provides the location of the granule within the uncompressed block data.
-Because compressed blocks contains data for multiple granules. This is due to how data is inserted into clickhouse (via blocks), and will be the subject of a future post.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;All the 8192 rows belonging to the located uncompressed granule are then streamed into ClickHouse for further processing.&lt;/p&gt;
-
-&lt;h3&gt;Why MARK Files ?&lt;/h3&gt;
-&lt;p&gt;Why does the primary index not directly contain the physical locations of the granules that are corresponding to index marks?&lt;br /&gt;
-Because at that very large scale that ClickHouse is designed for, it is important to be very disk and memory efficient.&lt;br /&gt;
-The primary index file needs to fit into the main memory.&lt;br /&gt;
-For our example query, ClickHouse used the primary index and selected a single granule that can possibly contain rows matching our query. Only for that one granule does ClickHouse then need the physical locations in order to stream the corresponding rows for further processing.&lt;br /&gt;
-Furthermore, this offset information is only needed for the UserID and URL columns.&lt;br /&gt;
-Offset information is not needed for columns that are not used in the query e.g. the EventTime.&lt;br /&gt;
-For our sample query, ClickHouse needs only the two physical location offsets for granule 176 in the UserID data file (UserID.bin) and the two physical location offsets for granule 176 in the URL data file (URL.bin).&lt;br /&gt;
-The indirection provided by mark files avoids storing, directly within the primary index, entries for the physical locations of all 1083 granules for all three columns: thus avoiding having unnecessary (potentially unused) data in main memory.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h1&gt;Appendix: References&lt;/h1&gt;
-
-&lt;p&gt;https://wikipedia.com&lt;br /&gt;
-https://olap.com/learn-bi-olap
-https://www.kdnuggets.com/2018/09/olap-queries-sql-refresher.html
-https://stackoverflow.com/questions/643694/what-is-the-difference-between-utf-8-and-unicode
-https://dataschool.com/data-modeling-101/row-vs-column-oriented-databases/&lt;br /&gt;
-https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses/&lt;br /&gt;
-https://clickhouse.com/docs/en/optimize/sparse-primary-indexes#an-index-design-for-massive-data-scales&lt;/p&gt;</content>
-
-      
-      
-      
-      
-      
-
-      <author>
-          <name>Özgün ÖZ</name>
-        
-        
-      </author>
-
-      
-
-      
-        <category term="development" />
-      
-        <category term="system" />
-      
-
-      
-        <summary type="html">First article of the clickhouse 101 series. Lets deep dive into the underlying data structures and internal mechanisms of clickhouse.</summary>
-      
-
-      
-      
-    </entry>
   
     <entry>
       <title type="html">Understanding Maven for plugin Development</title>
@@ -1030,22 +598,26 @@ Once defined (like already explained above), you can use them with the below syn
 &lt;p&gt;&lt;img src=&quot;../assets/images/JavaPropsVarsArgs.png&quot; /&gt;&lt;/p&gt;
 
 &lt;h1&gt; Secrets ?&lt;/h1&gt;
-&lt;p&gt;Now lets get back to the focus element of this post. The credentials in our configuration, aka. secrets.&lt;/p&gt;
+&lt;p&gt;Now lets get back to the focus element of this post. The credentials in our configuration, aka. secrets.
+There are different methods to give secret values as parameters to an application.&lt;/p&gt;
 
-&lt;p&gt;There are different methods to give secret values as parameters to an application.
-The most basic and old way, is to have the credentials stored in a configuration file, located only on a server we consider secure, and we limit all access to it. Like the production server.
-For applications that run on bare metal or VMs, this is most often the chosen method.&lt;/p&gt;
+&lt;h3&gt; Basic and old way &lt;/h3&gt;
+&lt;p&gt;Is to have the credentials stored in a configuration file, located only on a server we consider secure, and we limit all access to it. Like the production server.
+For applications that run directly on bare metal or VMs without orchestration, this is most often the chosen method.&lt;/p&gt;
 
-&lt;p&gt;Just to give a glimpse of some best practices used today without diving into too much details since it is not the subject of this blog post,
+&lt;p&gt;Just to give a glimpse of best practices used on non containerized environments, without diving into too much details since they are less and less used in modern systems,
 if you are using deployment tools like ansible, you can profit from features like &lt;a href=&quot;https://docs.ansible.com/ansible/latest/vault_guide&quot;&gt;Ansible Vault&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;../assets/images/hashicorp_ansible_jenkins_vm.png&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;It allows you to encrypt them with a key so your secret file that is encrypted may even be pushed on version control.
+&lt;p&gt;Ansible vault allows you to encrypt them with a key so your secret file that is encrypted may even be pushed on version control.
 It will then decrypt them on the fly during deployment.
 So only the decryption key is needed to be managed during the deployment and execution of the application.
-The encryption key is the real secret here and can be stored in your CI tool that will launch the deployments, or you can use a secret manager like &lt;a href=&quot;https://www.vaultproject.io/&quot;&gt;Hashicorp Vault&lt;/a&gt; to keep your secrets.
-Most CI tools, like jenkins have &lt;a href=&quot;https://plugins.jenkins.io/hashicorp-vault-plugin/&quot;&gt;plugins&lt;/a&gt;, allowing to communicate with HashiCorp Vault to fetch your secrets during your pipeline execution instead of storing them on the CI server.&lt;/p&gt;
+The encryption key is the real secret here and can be stored in your CI tool that will launch the deployments, or you can use a secret manager like &lt;a href=&quot;https://www.vaultproject.io/&quot;&gt;Hashicorp Vault&lt;/a&gt; to keep your secrets.&lt;/p&gt;
+
+&lt;p&gt;Application execution environments are considered as not secure since it is a place we do regular changes. Lots of ins and outs, difficult to track and secure.
+This is why key management applications, like HashiCorp Vault has come into being. Their only purpose is to store your secrets. They also allow you to keep your secrets in a central place without copy pasting it everywhere.&lt;br /&gt;
+For example most CI tools, like jenkins have &lt;a href=&quot;https://plugins.jenkins.io/hashicorp-vault-plugin/&quot;&gt;plugins&lt;/a&gt;, allowing to communicate with HashiCorp Vault to fetch your secrets during your pipeline execution instead of storing them on the CI server.&lt;/p&gt;
 
 &lt;div class=&quot;alert&quot;&gt;
     &lt;div style=&quot;margin-left: 0.7em;&quot;&gt;
@@ -1058,32 +630,54 @@ Most CI tools, like jenkins have &lt;a href=&quot;https://plugins.jenkins.io/has
     &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;h3&gt; Secrets accessible to the JVM from Environment Variables &lt;/h3&gt;
-&lt;p&gt;Application execution environments are considered as not secure since it is a place we do regular changes. Lots of ins and outs, difficult to track and secure.
-This is why key management applications, like HashiCorp Vault has come into being. Their only purpose is to store your secrets.&lt;/p&gt;
+&lt;h3&gt; In containerized environments &lt;/h3&gt;
 
-&lt;p&gt;Execution environments like containers have the advantage of being ephemeral which in turns makes the fact of having the secrets accessible on the execution environment more secure. 
-Making them accessible via environment variables, instead of a config file persisted on the FS, is considered relatively more secure. 
-There are still some concerns about this approach in general ( &lt;a href=&quot;https://www.cloudtruth.com/blog/the-pitfalls-of-using-environment-variables-for-config-and-secrets&quot;&gt;one&lt;/a&gt; or &lt;a href=&quot;https://www.trendmicro.com/en_za/research/22/h/analyzing-hidden-danger-of-environment-variables-for-keeping-secrets.html&quot;&gt;two&lt;/a&gt; among other tones of discussion on platforms like stackexchange and stackoverflow, of blog posts are available on the net)
-but most known Container Execution Environment Providers like Docker and Kubernetes has components (&lt;a href=&quot;https://kubernetes.io/docs/concepts/configuration/secret/&quot;&gt;etcd&lt;/a&gt; for K8s) that are considered relatively secure to store the secrets for you.
-Kubernetes has even a HashiCorp Vault &lt;a href=&quot;https://www.vaultproject.io/use-cases/kubernetes&quot;&gt;plugin&lt;/a&gt; that allows fetching the secrets from Vault and injecting into the pods, instead of storing them in own DB (etcd).&lt;/p&gt;
+&lt;p&gt;When we want to leverage from the advantages of containers (such as flexible scalability) we usually run multiple instances of our application. Hence, the secrets must be available to all the instances.
+Most known Container Execution Environment Providers like Docker and Kubernetes has components (&lt;a href=&quot;https://kubernetes.io/docs/concepts/configuration/secret/&quot;&gt;etcd&lt;/a&gt; for K8s) that are considered relatively secure to store the secrets for you, and make them available to all your instances.&lt;/p&gt;
+
+&lt;p&gt;Kubernetes has even direct &lt;a href=&quot;https://www.vaultproject.io/use-cases/kubernetes&quot;&gt;integration&lt;/a&gt; with HashiCorp Vault that allows fetching the secrets from Vault and injecting into the pods, instead of storing them in own DB (etcd).
+The only thing to manage in the execution environment is the credentials to access to Vault.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;../assets/images/hashicorp_jenkins_kubernetes.png&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;Plus, this option has the advantage of being able to put all the configurations related to your application to version control (recommended by the &lt;a href=&quot;https://7factorconfig.org/&quot;&gt;7 factor config&lt;/a&gt;).
-The only thing to manage in the execution environment is the credentials to access to Vault. Vault has several different integration tools with K8s, each having their pros and cons, discussed &lt;a href=&quot;https://www.hashicorp.com/blog/kubernetes-vault-integration-via-sidecar-agent-injector-vs-csi-provider&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Vault has several different integration tools with K8s, each having their pros and cons, discussed &lt;a href=&quot;https://www.hashicorp.com/blog/kubernetes-vault-integration-via-sidecar-agent-injector-vs-csi-provider&quot;&gt;here&lt;/a&gt;.&lt;br /&gt;
+The key challenge when we have multiple instances, and we want to centralize the management of the secrets in a single component (vault), is to keep the secrets used by the instances fresh and in sync with vault.&lt;br /&gt;
+Another challenge is about how the application will react to and handle a secret change. This is where framework specific solutions like &lt;a href=&quot;https://cloud.spring.io/spring-cloud-vault/reference/html/&quot;&gt;spring-cloud-vault&lt;/a&gt; comes into play.&lt;/p&gt;
 
-&lt;h3&gt; Secrets injected directly into the JVM from Secret Manager &lt;/h3&gt;
-&lt;p&gt;If we compare the above methods:&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;The first approach with bare metal VMs force us to handle secrets manually, while the second automates the injection of the secrets to the application runtime environment.&lt;/li&gt;
-  &lt;li&gt;But the second still forces us to administrate the access to the vault from the runtime environments of our application.&lt;br /&gt;
-For example we have to use specific plugins/tools/agents to each environment to access to the Vault and fetch secrets.&lt;/li&gt;
-&lt;/ol&gt;
+&lt;p&gt;Now all those options also differ in an important way, which is how do they make the secrets fetched from vault available to the application.&lt;/p&gt;
 
-&lt;p&gt;Frameworks like &lt;a href=&quot;https://cloud.spring.io/spring-cloud-vault/reference/html/&quot;&gt;spring-cloud-vault&lt;/a&gt; or tools like &lt;a href=&quot;https://homeofthewizard.github.io/vault-maven-plugin/&quot;&gt;maven-vault-plugin&lt;/a&gt; allows the JVM to fetch the secrets directly from the HashiCorp Vault.&lt;br /&gt;
-They are pure Java solutions, so you do not have to install anything specific to the execution environment, so can be used even in development environments.&lt;br /&gt;
-Plus your secrets are not persisted anywhere, but exists only in memory of your application.&lt;/p&gt;
+&lt;h3&gt; The use of secrets fetched from Secret Manager &lt;/h3&gt;
+&lt;p&gt;Tools/solutions specific to kubernetes either share the secrets in a file or as environment variable to the application.&lt;/p&gt;
+
+&lt;p&gt;Compared to bare-metal servers or VMs, containers have the advantage of being ephemeral which in turns makes the fact of having the secrets accessible on the execution environment a bit more secure.
+Making them accessible via environment variables, instead of a config file persisted on the FS, is considered relatively more secure.
+There are still some concerns about this approach in general ( &lt;a href=&quot;https://www.cloudtruth.com/blog/the-pitfalls-of-using-environment-variables-for-config-and-secrets&quot;&gt;one&lt;/a&gt; or &lt;a href=&quot;https://www.trendmicro.com/en_za/research/22/h/analyzing-hidden-danger-of-environment-variables-for-keeping-secrets.html&quot;&gt;two&lt;/a&gt; among other tones of discussion on platforms like stackexchange and stackoverflow, of blog posts are available on the net)&lt;/p&gt;
+
+&lt;p&gt;Another problem about making the secrets available via plain text file or environment variable, is the &lt;a href=&quot;https://www.cloudflare.com/learning/access-management/castle-and-moat-network-security/&quot;&gt;castle and moat&lt;/a&gt; problem.
+We can never be sure that our K8s cluster will not be accessed by an attacker. Hence, the importance of mutual TLS and emergence of zero-trust solutions like &lt;a href=&quot;https://istio.io/latest/docs/concepts/security/&quot;&gt;istio&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Frameworks like &lt;a href=&quot;https://cloud.spring.io/spring-cloud-vault/reference/html/&quot;&gt;spring-cloud-vault&lt;/a&gt; or tools like &lt;a href=&quot;https://homeofthewizard.github.io/vault-maven-plugin/&quot;&gt;maven-vault-plugin&lt;/a&gt; allows the JVM to fetch the secrets directly from the HashiCorp Vault. Your secrets are not persisted anywhere, but exists only in memory of your application.&lt;br /&gt;
+They are pure Java solutions, so you do not have to install anything specific to the execution environment, hence can be used even in development environments.&lt;br /&gt;
+Of course those solutions also have their downsides. Spring-cloud asks you to change your codebase and requires you to manage an additional config server, while vault-maven-plugin adds the overhead of a build tool to the execution of your app.&lt;/p&gt;
+
+&lt;h1&gt; Résumé &lt;/h1&gt;
+&lt;p&gt;Fist We have discussed how parameters in general are passed to a java application, as well as secrets.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Program Arguments&lt;/li&gt;
+  &lt;li&gt;System Properties&lt;/li&gt;
+  &lt;li&gt;Environment variables&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Then we have saw the importance of the usage of secret managers. Allowing us to centralise the management of our secrets and automate the integration with the different environments our application runs.&lt;/p&gt;
+
+&lt;p&gt;Lastly we saw the different options we have when using the HashCorp vault secret manager, and pointed to the key challenges and important points to consider when choosing one.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Final words&lt;/strong&gt;: There is no single solution that fits all. Every project has different requirements and priorities. So we have to consider the pros and cons of each solution to select the best for us.&lt;/p&gt;
+
+&lt;p&gt;Hope all that was useful for you!&lt;/p&gt;
+
+&lt;hr /&gt;
 
 &lt;h1&gt; Appendix: References &lt;/h1&gt;
 &lt;p&gt;https://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html  &lt;br /&gt;
@@ -1120,6 +714,438 @@ https://docs.spring.io/spring-framework/reference/core/beans/annotation-config/v
 
       
         <summary type="html">This post gives an overview of the different ways to manage configuration parameters for software applications in general, and focuses on the management of secrets with environment variables for applications written in java.</summary>
+      
+
+      
+      
+    </entry>
+  
+    <entry>
+      <title type="html">Clickhouse 101 - Data Structures and internals</title>
+      <link href="/clickhouse101_1" rel="alternate" type="text/html" title="Clickhouse 101 - Data Structures and internals" />
+      <published>2023-08-30T12:18:00+02:00</published>
+      <updated>2023-08-30T12:18:00+02:00</updated>
+      <id>/clickhouse101_1</id>
+      <content type="html" xml:base="/clickhouse101_1">&lt;p&gt;First article of the clickhouse 101 series. Lets deep dive into the underlying data structures and internal mechanisms of clickhouse.&lt;/p&gt;
+
+&lt;p&gt;Clickhouse is a DB that has a lot of potential and growing fast. Its use cases increase very rapidly as well. If you are into Data Analytics and Bigdata, you must explore it before too late.
+This series of articles are meant to give an easy introduction to clickhouse to mainly junior level engineers, but you will still find interesting content if you are more experienced. 
+The official documentation is evolving very fast. It is now complete in terms of content, and it is easier to read and browse through.&lt;br /&gt;
+So in this series we will be covering topics necessary knowledge before you dig into the official documentation, a résumé of most important points that differ clickhouse and that need attention, lastly and most importantly give experience based and neutral recommendations.&lt;/p&gt;
+
+&lt;p&gt;The series of articles will be as the following:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;&lt;a href=&quot;/clickhouse101_1&quot;&gt;Clickhouse DataStructures and Internals&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Modeling your data in Clickhouse&lt;/li&gt;
+  &lt;li&gt;Tradeoffs to take into account for Optimization&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;In this first article, we will cover a bit of theory before getting into the practice. We will refresh our memory on the basics of DBs in general and the datastructures used in them. Lastly see how these structures are used in clickhouse and where does its power come from. &lt;br /&gt;
+We will cover the following topics:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;&lt;a href=&quot;#whatisCH&quot; id=&quot;whatisCHref&quot;&gt;What is Clickhouse ?&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#dsCH&quot; id=&quot;dsCHref&quot;&gt;Datastructures used in DBs and in Clickhouse&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#internalCH&quot; id=&quot;internalCHref&quot;&gt;Clickhouse internal Storage and Query Mechanisms&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;hr /&gt;
+
+&lt;h1 id=&quot;whatisCH&quot;&gt; 1. What is Clickhouse ? &lt;/h1&gt;
+
+&lt;p&gt;The best answer to that comes always from the &lt;a href=&quot;https://clickhouse.com/docs/en/intro&amp;quot;&quot;&gt;official documentation&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+ClickHouse® is a high-performance, column-oriented SQL database management system (DBMS) for online analytical processing (OLAP). It is available as both an open-source software and a cloud offering.
+&lt;/blockquote&gt;
+
+&lt;p&gt;To describe its differences briefly:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;It is a true Column Based Database&lt;/li&gt;
+  &lt;li&gt;Uses data compression as a key role of its internal mechanism&lt;/li&gt;
+  &lt;li&gt;Stores data on disk&lt;/li&gt;
+  &lt;li&gt;Process data in blocks (similar data is stored together), in parallel (uses multicore CPUs) and has a distributed architecture (every instance is independent)&lt;/li&gt;
+  &lt;li&gt;Has SQL support (pretty much)&lt;/li&gt;
+  &lt;li&gt;Real time Data inserts (async data inserts do not block queries)&lt;/li&gt;
+  &lt;li&gt;It is Opensource&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In order to understand it’s true power and its differences from other DBs, lets first try to understand the basic concepts behind Column Oriented DBs and OLAP queries.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h1 id=&quot;dsCH&quot;&gt; 2. Datastructures used in DBs and in Clickhouse&lt;/h1&gt;
+&lt;h2&gt; 2.1 Analytical Processing (OLAP) &lt;/h2&gt;
+&lt;p&gt;Definition from &lt;a href=&quot;https://en.wikipedia.org/wiki/Online_analytical_processing&quot;&gt;wikipedia&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;OLAP (/ˈoʊlæp/), is an approach to answer multi-dimensional analytical (MDA) queries swiftly in computing.&lt;/blockquote&gt;
+&lt;p&gt;Explained simply: It requires a system where we will insert new data very frequently, and want to query adhoc slices of it in real time. But never update the inserted data.&lt;/p&gt;
+
+&lt;p&gt;If we dig further:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;It requires scanning and aggregating large amount of data.&lt;br /&gt;
+Meaning that it is I/O and compute intensive (bottleneck is usually IO).&lt;/li&gt;
+  &lt;li&gt;Choosing different adhoc slices of data.&lt;br /&gt;
+Since we have lots of attributes and huge data, cache, index, pre-aggregation have limited value.&lt;/li&gt;
+  &lt;li&gt;Needs to deliver extremely fast response.&lt;br /&gt;
+Response required in as little as 20ms (Most of the time it is the backend for real-time applications)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;These systems present the data to the user modelled as a &lt;a href=&quot;https://en.wikipedia.org/wiki/OLAP_cube&quot;&gt;cube&lt;/a&gt; in order to ease querying adhoc slices of it.
+The term cube here refers to a multidimensional dataset, which is also sometimes called a &lt;strong&gt;hypercube&lt;/strong&gt; if the number of dimensions is greater than three (which is usually the case).
+It consists of numeric facts called measures that are categorized by dimensions. The measures are placed at the intersections of the hypercube, which is spanned by the dimensions as a vector space.&lt;/p&gt;
+
+&lt;p&gt;Let’s say we have a dataset where our fact/measure is the sales of a company, and the dimensions (attributes) of it are time of the sale, product sold, and the city where it is sold.
+Each cell of the cube holds a number that represents some measure of the business, such as sales, the 3 dimensions of our cube are the 3 attributes of our sale data.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../assets/images/OLAP_Cube.svg.png&quot; width=&quot;256&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Multiple standard operations of an OLAP cube exists to allow users analyse the data on all its aspects.&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Slicing/Dicing: Filtering the data on one or multiple specific value of one of its dimension. (ex: data for only the year 1989)&lt;/li&gt;
+  &lt;li&gt;Drill Down/Up: allows the user to navigate among levels of data ranging from the most summarized (up) to the most detailed (down). (ex: from outdoor sport equipments to individual products)&lt;/li&gt;
+  &lt;li&gt;Roll-up: Involves summarizing the data along a dimension. The summarization rule might be an aggregate function, such as computing totals along a hierarchy or applying a set of formulas such as “profit = sales - expenses”&lt;/li&gt;
+  &lt;li&gt;Pivot allows an analyst to rotate the cube in space to see its various faces. For example, cities could be arranged vertically and products horizontally while viewing data for a particular year&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Olap systems under the hood, structures the DB tables in form of a &lt;a href=&quot;https://en.wikipedia.org/wiki/Star_schema&quot;&gt;star schema&lt;/a&gt; (other types of schemas exists, but similar).&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../assets/images/star-schema.png&quot; width=&quot;512&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;Olap systems can have their data modeled in Clickhouse with this structure as well, but a simple and single flat table is more recommended. We will see why and how clickhouse allow this later in this post.&lt;/p&gt;
+
+&lt;p&gt;Olap systems in order to give a cube like visualisation to the user on the UI or spreadsheet, based on the database structure under it, use an intermediate component that has a query engine generating the appropriate Queries (SQL for ClickHouse).
+Some of the available solutions that provides the cube model on top of ClickHouse are &lt;a href=&quot;https://cube.dev/for/clickhouse-dashboard&quot;&gt;Cube&lt;/a&gt; and &lt;a href=&quot;https://www.metabase.com/data_sources/click-house&quot;&gt;Metabase&lt;/a&gt;(opensource), and &lt;a href=&quot;https://opensee.io/&quot;&gt;Opensee&lt;/a&gt; (tailored for financial institutions).&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-OLAP.png&quot; width=&quot;1024&quot; /&gt;&lt;/p&gt;
+
+&lt;h2&gt; 2.2 How DBs work in general &lt;/h2&gt;
+&lt;p&gt;Before we see how Column-Oriented DBs work (like clickhouse), lets refresh our memories on some base concepts necessary to understand how DBs store data, and how they look up for them when queried.&lt;/p&gt;
+
+&lt;p&gt;Lets illustrate how those work using the following DB table.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-table.png&quot; /&gt;&lt;/p&gt;
+
+&lt;h3&gt;Partitionning&lt;/h3&gt;
+&lt;p&gt;It allows a table to be subdivided and stored into smaller pieces, where each piece of such a database object is called a partition. Each partition has its own name, and may optionally have its own storage characteristics (maybe stored on separate physical or virtual disk for example). The data of partitioned tables is divided into units that can be spread across more than one filegroup in a database. The data is partitioned horizontally, so that groups of rows are mapped into individual partitions.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-partitioning-tables.png&quot; /&gt;&lt;/p&gt;
+
+&lt;h3&gt;Indexing&lt;/h3&gt;
+&lt;p&gt;I would like to state first the definition of the word &lt;a href=&quot;https://en.wikipedia.org/wiki/Index_(publishing)&quot;&gt;“index”&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+An index is a list of words or phrases (&apos;headings&apos;) and associated pointers (&apos;locators&apos;) to where useful material relating to that heading can be found in a document or collection of documents. Examples are an index in the back matter of a book and an index that serves as a library catalog. An index differs from a word index, or concordance, in focusing on the subject of the text rather than the exact words in a text, and it differs from a table of contents because the index is ordered by subject, regardless of whether it is early or late in the book, while the listed items in a table of contents is placed in the same order as the book.[1]
+&lt;/blockquote&gt;
+
+&lt;p&gt;Now we can understand its usage &lt;a href=&quot;https://en.wikipedia.org/wiki/Database_index&quot;&gt;in DBs&lt;/a&gt;.&lt;/p&gt;
+&lt;blockquote&gt;
+A database index is a data structure that improves the speed of data retrieval operations on a database table at the cost of additional writes and storage space to maintain the index data structure.
+&lt;/blockquote&gt;
+
+&lt;p&gt;Indexes in DBs are created using the following two info:&lt;br /&gt;
+&lt;strong&gt;Search key:&lt;/strong&gt; A copy of the primary key, the values of the search key is stored in sorted order to be able to search on them easily.&lt;br /&gt;
+&lt;strong&gt;Data ref:&lt;/strong&gt; or pointer, which contains addresses of disk block where the value row of that particular key is stored.    &lt;br /&gt;
+&lt;em&gt;NOTE: the pointed data itself may or may not be ordered.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-indexing-tables.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;There exists two types of index file organisations:&lt;br /&gt;
+&lt;strong&gt; 1. Sequential file organisation &lt;/strong&gt;&lt;br /&gt;
+&lt;strong&gt; 2. Hash file organisation &lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Lets illustrate how those organisations work using our DB table.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-indexing-table.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We will start with Hash file, and finish with Sequential file index, cause the latest is the one used in ClickHouse.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Hash file organisation:&lt;/strong&gt;
+Is an index that uses a hash function with search keys as parameters to generate the direct addresses of data record on disk.
+We give the definition of a hash function later in this article.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-hash-file.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;As it is the case for all Hash based organisations, the data stored is scattered, non-ordered, so cannot be compressed. Lots of space is not used and wasted.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Sequential file index organisation:&lt;/strong&gt;
+In this, the indices are based on a sorted ordering of the values. These are generally fast and a more traditional type of storing mechanism. These Ordered or Sequential file organizations might store the data in a dense or sparse format.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-sequential-file.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Dense index: &lt;/strong&gt;
+We can see that the index has an entry for every first name in the table. If we want to look up a user with the first name “Arnaud,” then we perform a binary search on the index and read the location of the data. In contrast, a sparse index only has entries for some of the table rows.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Sparse index:&lt;/strong&gt;&lt;br /&gt;
+We can see that our sparse index only has 2 entries (one for each page). Now, if we want to find the row for “Arnaud,” we can perform a binary search on our index to find that it falls between “Anne” and “Mathieu”. After discovering those bounds, we go to the page starting with “Anne” and begin scanning for Arnaud’s row. Notice that the data is now sorted on the right side for this example. This sorting is a limitation of the sparse index. A sparse index requires ordered data; otherwise, the scanning step would be impossible.&lt;/p&gt;
+
+&lt;p&gt;Dense indexes require more maintenance than sparse indexes at write-time. Since every row must have an entry, the database must maintain the index on inserts, updates, and deletes. Having an entry for every row also means that dense indexes will require more memory. The benefit of a dense index is that values can be quickly found with just a binary search. Dense indexes also do not impose any ordering requirements on the data.
+Sparse indexes require less maintenance than dense indexes at write-time since they only contain a subset of the values. This lighter maintenance burden means that inserts, updates, and deletes will be faster. Having fewer entries also means that the index will use less memory. Finding data is slower since a scan across the page typically follows the binary search. Sparse indexes are also only an option when working with ordered data.&lt;/p&gt;
+
+&lt;h2&gt; 2.3. How Row and Column based Databases work&lt;/h2&gt;
+&lt;p&gt;Lets say we have the following DB table.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-DB table.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Row oriented DBs, as the name suggest, store data in rows. It is easy to write and read entire rows. But not so much if you want to read adhoc Query or do aggregation on particular columns, like analytical queries does. 
+In that case you have to bring all columns for all rows, read multiple disks potentially, then filter on columns you are interested, then only aggregate.&lt;/p&gt;
+
+&lt;p&gt;For example if we want to add a new row in a Row oriented DB, we would be appending the data like below.&lt;br /&gt;
+Reading from it would require reading all columns.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-Row%20based%20DBs.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Now imagine if we just wanted to sum the ages in this table. We would have to read all data columns first to get the data we need. Also if we partition the table into multiple disks, this would mean that the computer would need to read from multiple disks to get the data necessary.&lt;/p&gt;
+
+&lt;p&gt;Now lets compare the same scenario for the same data stored on a Column Oriented design.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-Column%20based%20DBs.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;If we want to add new data, we would have to plug each column’s data into where it belongs. If we use a single disk, we would have to bring everything in memory to do this. But it is the same with Row Oriented design. Column Oriented design has its advantage if we partition data into multiple disks.&lt;/p&gt;
+
+&lt;p&gt;As we can see from above, when reading a single column for aggregating on it, we just need one disk, and the data loaded in memory is much less.&lt;/p&gt;
+
+&lt;p&gt;Now, If we want to save space on our DB and secure data, we may consider data encoding and compression. So lets see what that means.&lt;/p&gt;
+
+&lt;h2&gt; 2.4. Compression ? Encoding ? Encryption ? Hashing ? Indexing ? Huh ?!&lt;/h2&gt;
+&lt;p&gt;Compression from &lt;a href=&quot;https://en.wikipedia.org/wiki/Data_compression&quot;&gt;wikipedia&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+In information theory, data compression, source coding, or bit-rate reduction is the process of encoding information using fewer bits than the original representation. Any particular compression is either lossy or lossless. Lossless compression reduces bits by identifying and eliminating statistical redundancy. No information is lost in lossless compression. Lossy compression reduces bits by removing unnecessary or less important information.[3] Typically, a device that performs data compression is referred to as an encoder, and one that performs the reversal of the process (decompression) as a decoder.
+&lt;/blockquote&gt;
+&lt;p&gt;As the description above says, compression is a type of encoding. So lets start with that first.&lt;/p&gt;
+
+&lt;h3&gt; What is Encoding ? &lt;/h3&gt;
+&lt;p&gt;Encoding data is a process involving changing data into a new format using a scheme. Encoding is a reversible process and data can be encoded to a new format and decoded to its original format. Encoding typically involves a publicly available scheme that is easily reversed. Encoding data is typically used to ensure the integrity and usability of data and is commonly used when data cannot be transferred in its current format between systems or applications. Encoding is not used to protect or secure data because it is easy to reverse.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;An example of encoding - Base64  &lt;/strong&gt;
+It is a method to encode byte sequences to a string. Also known as ASCII encoding, it converts binary data to ASCII strings.
+But it is not the ideal choice for security as it can easily be decoded.
+Instead, it serves as an easy way to make non HTTP compatible data types readable (image, audio ect…)
+We can attach a base64 encoded image into an xml or email.
+It provides no checksum or anything for storage value, so it is really used for transport.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt; Another example of encoding - UTF &lt;/strong&gt;
+It is a method used for storage. 
+UTF Stands for “Unicode Transformation Format”. The UTF encoding standards, such as UTF-8, 16 ect., are used to convert Unicode character into numerals. &lt;strong&gt;Unicode&lt;/strong&gt; is a codded character set. A set of characters and mapping between those characters and their integer codes representing them.&lt;/p&gt;
+
+&lt;p&gt;Lets say we want to store the following character in our hard drive.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;character:              汉
+unicode:                U+6C49
+unicode in binary:      01101100  01001001&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;When we decide to store a character in our hard drive, we can simply put its binary value. When the computer reads it, it has no idea how to parse this. It is one byte 2 charcter ? or two bytes 1 character ? so we need an encoding to tell the computer how to treat it when read. This is where UTF-8 like encodings comes in.&lt;/p&gt;
+
+&lt;p&gt;Binary Format of Byte Sequences in UTF-8 are like the following:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-utf-table.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Which format from the above table we will use depends on how many bits we need to write in binary the unicode of our character (for 汉 we need 2bytes/16bits).  &lt;br /&gt;
+So to Encode 汉 in UTF-8 we will use the 3bytes format which has 16bits free:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-utf-encoding.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Encoding of 汉 in UTF-8   =  11100110 10110001 10001001&lt;/p&gt;
+
+&lt;h3&gt; What is Encryption ? &lt;/h3&gt;
+&lt;p&gt;Encryption is an encoding technique for a specific need, which is to allow only authorized users with a key or password to decrypt the data and reveal its original. Encryption is used when data needs to be protected so those without the decryption keys cannot access the original data. For example, when data is sent to a website over HTTPS it is encrypted using the public key type. While encryption does involve encoding data, the two are not interchangeable terms, encryption is always used when referring to data that has been securely encoded. Encoding data is used only when talking about data that is not securely encoded.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;An example of encryption is: AES&lt;/strong&gt;
+AES is the Advanced Encryption Standard and is a symmetric key encryption.
+We will see, in later articles of this series that Clickhouse, if needed, allows encrypting the data at rest with an AES key.&lt;/p&gt;
+
+&lt;p&gt;If you would like to dig deeper into encryption, the subject is very wast and is a scientific field apart (Cryptography), but I could suggest &lt;a href=&quot;https://en.wikipedia.org/wiki/Encryption&quot;&gt;this article&lt;/a&gt; as a good beginning.&lt;/p&gt;
+
+&lt;h3&gt; What is Hashing ? &lt;/h3&gt;
+&lt;p&gt;Hashing is a one-way process where data is “encoded”, using a hash-function.
+The best definition of a hash function comes from &lt;a href=&quot;&amp;quot;https://en.wikipedia.org/wiki/Hash_function&amp;quot;&quot;&gt;wikipedia&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+A hash function is any function that can be used to map data of arbitrary size to fixed-size values, though there are some hash functions that support variable length output. The values returned by a hash function are called hash values, hash codes, digests, or simply hashes. The values are usually used to index a fixed-size table called a hash table. Use of a hash function to index a hash table is called hashing or scatter storage addressing.
+&lt;/blockquote&gt;
+&lt;p&gt;As we can understand from that definition, hashing can be using to index data in Databases, which we already saw above.&lt;/p&gt;
+
+&lt;p&gt;But on top of that Hashing is also commonly used to verify the integrity of data, commonly referred to as a checksum, and it is the recommended data transformation technique in authentication processes for computer systems and applications.
+If you are interested to those other usages outside our scope, a good article can be found &lt;a href=&quot;https://www.packetlabs.net/posts/encryption-encoding-and-hashing/#:~:text=In%20addition%20to%20verifying%20the,of%20the%20%E2%80%9Csalted%20password%E2%80%9D&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3&gt; What is Compression ? &lt;/h3&gt;
+&lt;p&gt;Compression mechanisms seperates into two, losseless and lossy. As the names suggest, lossless types can compress/decompress data and reconstruct it without any data loss. ex: zip archives which includes tarball(tar.xz) compression for unix systems.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt; An example of Compression - Dictionary Encoding:&lt;/strong&gt;
+Most primitive, yet most powerful encoding. It compresses really good, but the dictionary built is usually for a specific purpose. Otherwise too big an not optimal. A common usage is Brotli algorithm used to compress web pages.&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;key&lt;/th&gt;
+      &lt;th&gt;encoded value&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;1&lt;/td&gt;
+      &lt;td&gt;fondue&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;2&lt;/td&gt;
+      &lt;td&gt;spageti&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;3&lt;/td&gt;
+      &lt;td&gt;döner&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;strong&gt;An example of Compression - Bitmap Compression / Run-length Encoding:&lt;/strong&gt;
+It is a form of losseless compression in which “runs” of data (sequences in which the same data value occurs in many consecutive data elements) are stored as a single data value and count.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;aaaab -&amp;gt; 4a1b&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2&gt; 2.5. Why sorting is important in C-Oriented DBs ? &lt;/h2&gt;
+&lt;p&gt;When doing adHoc queries, there are different sort orders of data that would improve performance. We might want to list data ordered by date, for instance both in asc and desc order. In R-DBs, indexes can be created but data is rarely ordered with multiple sort orders. In C-DBs you can.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-ColumnOriented-ReadStores.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;These ways of storing data are called “projections”.
+There are multiple benefits beyond query performance. Having multiple copies of same data allows fault tolerance.&lt;/p&gt;
+
+&lt;p&gt;The above diagram seems difficult to update, and it is. But that is why usually C-DBs have the main table called “writable store (WS)” and multiple “readable stores (RS)”.
+The WS has data ordered in order of injection. It simply appends new data to the existing one. It has a tuple mover that updates the RS with the updates to the WS.
+The RS can have multiple projections. The tuple mover navigates to the projections and append data to the proper place.&lt;/p&gt;
+&lt;div class=&quot;alert&quot;&gt;
+    &lt;div style=&quot;margin-left: 0.7em;&quot;&gt;
+        &lt;!--&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;16&quot; height=&quot;16&quot; fill=&quot;currentColor&quot; class=&quot;bi bi-exclamation-triangle-fill&quot; viewBox=&quot;0 0 16 16&quot;&gt;
+            &lt;path d=&quot;M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z&quot;/&gt;
+        &lt;/svg&gt;--&gt; 
+        Warning:
+        &lt;em&gt;This architecture requires that the partially inserted data to the RS should be ignored by the incoming adhoc queries, until the insertion is completed&lt;/em&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;p&gt;As seen above since we can sort column data. This allows us to compress with run-lenght encoding to reduce the data in terms of bit and store less data on our hard drive. 
+Also since we encode data, each piece of data is the same number of bits long. So we can further compress: each data piece is shown as, the number of piece of data times the number of bits each data piece has.
+All of that allows our DB to read less data from the disk when querying it ! isn’t that beautiful ?&lt;/p&gt;
+
+&lt;h2&gt; 2.6. Résumé &lt;/h2&gt;
+&lt;p&gt;In C-Oriented DBs:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Data is partitioned by columns.&lt;/li&gt;
+  &lt;li&gt;Column Data is stored ordered.&lt;/li&gt;
+  &lt;li&gt;Since data is ordered, so we can us Sparse index.&lt;/li&gt;
+  &lt;li&gt;Data is ordered, so we can compress it.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Now we have learned a lot about C-Oriented Columns. How things work really in clickhouse ?&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h1 id=&quot;internalCH&quot;&gt; 3. Clickhouse Internal Storage and Query Mechanism&lt;/h1&gt;
+&lt;p&gt;Now lets take a practical example to illustrate the power of clickhouse.&lt;br /&gt;
+Say we have the table below. It gives the information of the flights on Charle-De-Gaule airport and containing 8.87 million entry:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-partitioned-table.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;If we execute the query below on that table:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sql&quot; data-lang=&quot;sql&quot;&gt;&lt;span class=&quot;k&quot;&gt;SELECT&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Carrier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;toYear&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FlightDate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Year&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;canceled&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;canceled&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;flights_ontime&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;WHERE&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Year&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2017&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;GROUP&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;BY&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Carrier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Year&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;HAVING&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cancelled&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;ORDER&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;BY&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Carrier&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;If we:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;read every row 				=&amp;gt; 	59GB  	%100&lt;/li&gt;
+  &lt;li&gt;read only 3 columns 		    =&amp;gt;	1,7GB	%3&lt;/li&gt;
+  &lt;li&gt;read 3 cols compressed		=&amp;gt;	21MB	%0,035&lt;/li&gt;
+  &lt;li&gt;read 3 cols comp 8 threads	=&amp;gt;	2,6MB	%0,0044&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;As we already saw Partitions are how data is physically organised in databases.
+Let’s say that we have a data on our list of friends.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-partitioning.png&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;If We split the data in two partition. If we order the data in each partition by lets say “name”,
+the data in each partition will look like this.
+Each partition will have a sparse index. The columns’ data are stored separately, in the order we see here, linked to the “name” column’s order.&lt;/p&gt;
+
+&lt;p&gt;If we get back to our flight records example, a partition looks like below.
+Each partition will be a folder on the file system containing multiple files. We see that the folder is named with the month. We had partitionned our data by the flight Month.
+We have put the flightDate and CarrierId in the primary key, so they will be used in the sparse index file.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../assets/images/mastering_clickhouse-parts-internals.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;For data processing purposes, a table’s column values are logically divided into granules. A granule is the smallest indivisible data set that is streamed into ClickHouse for data processing. This means that instead of reading individual rows, ClickHouse is always reading (in a streaming fashion and in parallel) a whole group (granule) of rows.
+The above diagram shows how the (column values of) 8.87 million rows of our table are organized into 1083 granules (a configuration value of 8192 by default for a granule’s size, can be changed).&lt;/p&gt;
+
+&lt;p&gt;The primary index is created based on the granules shown in the diagram above. This index is an uncompressed flat array file (primary.idx), containing so-called numerical index marks starting at 0.&lt;/p&gt;
+
+&lt;p&gt;The diagram above shows that the index stores the primary key column values for each first row for each granule. Or in other words: the primary index stores the primary key column values from each 8192nd row of the table (based on the physical row order defined by the primary key columns).&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;The first index entry (‘mark 0’) is storing the key column values of the first row of granule 0,&lt;/li&gt;
+  &lt;li&gt;The second index entry (‘mark 1’) is storing the key column values of the first row of granule 1, and so on.
+For example if I am looking for the Data of AirFrance (carrierID AF) on July 2017, it will fell into the first granule according to this sparse index.
+And the mark for this granule will be the mark0 in the .mrk file.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;Why Sparse index ?&lt;/h3&gt;
+&lt;p&gt;In traditional relational database management systems, the primary index would contain one entry per table row. For our data set this would result in the primary index - often a B(+)-Tree data structure - containing 8.87 million entries. Such an index allows the fast location of specific rows, resulting in high efficiency for lookup queries and point updates. Searching an entry in a B(+)-Tree data structure has average time complexity of O(log2 n). For a table of 8.87 million rows, this means 23 steps are required to locate any index entry. This capability comes at a cost: additional disk and memory overheads and higher insertion costs when adding new rows to the table and entries to the index (and also sometimes rebalancing of the B-Tree).&lt;/p&gt;
+
+&lt;p&gt;Considering the challenges associated with B-Tree indexes, table engines in ClickHouse utilise a different approach. The ClickHouse MergeTree Engine Family has been designed and optimized to handle massive data volumes. These tables are designed to receive millions of row inserts per second and store very large (100s of Petabytes) volumes of data. Data is quickly written to a table part by part, with rules applied for merging the parts in the background. In ClickHouse each part has its own primary index. When parts are merged, then the merged part’s primary indexes are also merged. At the very large scale that ClickHouse is designed for, it is paramount to be very disk and memory efficient. Therefore, instead of indexing every row, the primary index for a part has one index entry (known as a ‘&lt;strong&gt;mark&lt;/strong&gt;’) per group of rows (called ‘&lt;strong&gt;granule&lt;/strong&gt;’) - this technique is called sparse index.&lt;/p&gt;
+
+&lt;p&gt;Sparse indexing is possible because ClickHouse is storing the rows for a part on disk ordered by the primary key column(s). Instead of directly locating single rows (like a B-Tree based index), the sparse primary index allows it to quickly (via a binary search over index entries) identify groups of rows that could possibly match the query. The located groups of potentially matching rows (granules) are then in parallel streamed into the ClickHouse engine in order to find the matches. This index design allows for the primary index to be small (it can, and must, completely fit into the main memory), whilst still significantly speeding up query execution times: especially for range queries that are typical in data analytics use cases.&lt;/p&gt;
+
+&lt;h3&gt;How this structure is used when Querying data?&lt;/h3&gt;
+&lt;p&gt;When a query is filtering on a column that is part of a compound key and is the first key column, then ClickHouse is running the binary search algorithm over the key column’s index marks.&lt;/p&gt;
+
+&lt;p&gt;As discussed above, ClickHouse is using its sparse primary index for quickly (via binary search) selecting granules that could possibly contain rows that match a query.&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;This is the first stage (granule selection) of ClickHouse query execution.&lt;/li&gt;
+  &lt;li&gt;In the second stage (data reading), ClickHouse is locating the selected granules in order to stream all their rows into the ClickHouse engine in order to find the rows that are actually matching the query.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In ClickHouse the physical locations of all granules for our table are stored in mark files. Similar to data files, there is one mark file per table column.
+We have discussed how the primary index is a flat uncompressed array file (primary.idx), containing index marks that are numbered starting at 0.
+Similarly, a mark file is also a flat uncompressed array file (*.mrk) containing marks that are numbered starting at 0.
+Once ClickHouse has identified and selected the index mark for a granule that can possibly contain matching rows for a query, a positional array lookup can be performed in the mark files in order to obtain the physical locations of the granule.&lt;/p&gt;
+
+&lt;p&gt;Each mark file entry for a specific column is storing two locations in the form of offsets:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;The first offset (‘block_offset’) is locating the block in the compressed column data file that contains the compressed version of the selected granule. This compressed block potentially contains a few compressed granules. The located compressed file block is uncompressed into the main memory on read.&lt;/li&gt;
+  &lt;li&gt;The second offset (‘granule_offset’) from the mark-file provides the location of the granule within the uncompressed block data.
+Because compressed blocks contains data for multiple granules. This is due to how data is inserted into clickhouse (via blocks), and will be the subject of a future post.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;All the 8192 rows belonging to the located uncompressed granule are then streamed into ClickHouse for further processing.&lt;/p&gt;
+
+&lt;h3&gt;Why MARK Files ?&lt;/h3&gt;
+&lt;p&gt;Why does the primary index not directly contain the physical locations of the granules that are corresponding to index marks?&lt;br /&gt;
+Because at that very large scale that ClickHouse is designed for, it is important to be very disk and memory efficient.&lt;br /&gt;
+The primary index file needs to fit into the main memory.&lt;br /&gt;
+For our example query, ClickHouse used the primary index and selected a single granule that can possibly contain rows matching our query. Only for that one granule does ClickHouse then need the physical locations in order to stream the corresponding rows for further processing.&lt;br /&gt;
+Furthermore, this offset information is only needed for the UserID and URL columns.&lt;br /&gt;
+Offset information is not needed for columns that are not used in the query e.g. the EventTime.&lt;br /&gt;
+For our sample query, ClickHouse needs only the two physical location offsets for granule 176 in the UserID data file (UserID.bin) and the two physical location offsets for granule 176 in the URL data file (URL.bin).&lt;br /&gt;
+The indirection provided by mark files avoids storing, directly within the primary index, entries for the physical locations of all 1083 granules for all three columns: thus avoiding having unnecessary (potentially unused) data in main memory.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h1&gt;Appendix: References&lt;/h1&gt;
+
+&lt;p&gt;https://wikipedia.com&lt;br /&gt;
+https://olap.com/learn-bi-olap
+https://www.kdnuggets.com/2018/09/olap-queries-sql-refresher.html
+https://stackoverflow.com/questions/643694/what-is-the-difference-between-utf-8-and-unicode
+https://dataschool.com/data-modeling-101/row-vs-column-oriented-databases/&lt;br /&gt;
+https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses/&lt;br /&gt;
+https://clickhouse.com/docs/en/optimize/sparse-primary-indexes#an-index-design-for-massive-data-scales&lt;/p&gt;</content>
+
+      
+      
+      
+      
+      
+
+      <author>
+          <name>Özgün ÖZ</name>
+        
+        
+      </author>
+
+      
+
+      
+        <category term="development" />
+      
+        <category term="system" />
+      
+
+      
+        <summary type="html">First article of the clickhouse 101 series. Lets deep dive into the underlying data structures and internal mechanisms of clickhouse.</summary>
       
 
       
