@@ -4,7 +4,7 @@
   <generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator>
   <link href="/tag/java/feed.xml" rel="self" type="application/atom+xml" />
   <link href="/" rel="alternate" type="text/html" />
-  <updated>2024-07-29T12:46:30+02:00</updated>
+  <updated>2024-07-29T18:31:58+02:00</updated>
   <id>/tag/java/feed.xml</id>
 
   
@@ -615,6 +615,9 @@ It will then decrypt them on the fly during deployment.
 So only the decryption key is needed to be managed during the deployment and execution of the application.
 The encryption key is the real secret here and can be stored in your CI tool that will launch the deployments, or you can use a secret manager like &lt;a href=&quot;https://www.vaultproject.io/&quot;&gt;Hashicorp Vault&lt;/a&gt; to keep your secrets.&lt;/p&gt;
 
+&lt;p&gt;It is worth mentioning there are other secret managers like platform specific ones on AWS, Azure or GCP, and &lt;a href=&quot;https://github.com/getsops/sops&quot;&gt;SOPS&lt;/a&gt; which is totally free and opensource.
+We will not get into their differences here, and use HashiCorp Vault in the examples described in this post. But the differences are mostly licence and operational cost related.&lt;/p&gt;
+
 &lt;p&gt;Application execution environments are considered as not secure since it is a place we do regular changes. Lots of ins and outs, difficult to track and secure.
 This is why key management applications, like HashiCorp Vault has come into being. Their only purpose is to store your secrets. They also allow you to keep your secrets in a central place without copy pasting it everywhere.&lt;br /&gt;
 For example most CI tools, like jenkins have &lt;a href=&quot;https://plugins.jenkins.io/hashicorp-vault-plugin/&quot;&gt;plugins&lt;/a&gt;, allowing to communicate with HashiCorp Vault to fetch your secrets during your pipeline execution instead of storing them on the CI server.&lt;/p&gt;
@@ -629,6 +632,9 @@ For example most CI tools, like jenkins have &lt;a href=&quot;https://plugins.je
         Also, duplicating the places where you persist the secret widens the attack surface and increase the risk of leak of the secret.&lt;/em&gt;
     &lt;/div&gt;
 &lt;/div&gt;
+
+&lt;p&gt;A powerful feature of vault that enhance the security of our applications, is the &lt;strong&gt;automatic rotation of secrets&lt;/strong&gt;. 
+I will not dig in the details of how it works and how to use it (will probably be the subject of a separate post), but you can find good article online such as this &lt;a href=&quot;https://www.hashicorp.com/blog/refresh-secrets-for-kubernetes-applications-with-vault-agent&quot;&gt;post&lt;/a&gt; and this devoxx &lt;a href=&quot;&quot;&gt;talk&lt;/a&gt; (in french).&lt;/p&gt;
 
 &lt;h3&gt; In containerized environments &lt;/h3&gt;
 
